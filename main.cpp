@@ -10,5 +10,8 @@ int main()
 
     Tree_Dump(tree);
 
+    double answer = Eval(tree -> root);
+    printf("\n\033[32mEnd = %lf\033[0m\n", answer);
+
     Draw_Graph(tree);
 }

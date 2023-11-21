@@ -29,7 +29,7 @@ struct Tree
     int size;
 };
 
-union Value
+struct Value
 {
     enum OPERATION op;
     double num;
@@ -46,8 +46,9 @@ struct Node
     struct Node* prev;
 };
 
-struct Node* Insert_to_Pointer(struct Tree* tree, union Value* value, struct Node* now_node, int indicator, enum TYPE type);
-struct Node* Create_Node(enum TYPE type, union Value* value, struct Node* left_node, struct Node* right_node);
+struct Node* Insert_to_Pointer(struct Tree* tree, struct Value* value, struct Node* now_node, int indicator, enum TYPE type);
+struct Node* Create_Node(enum TYPE type, struct Value* value, struct Node* left_node, struct Node* right_node);
+double Eval(struct Node* node);
 
 #endif
 

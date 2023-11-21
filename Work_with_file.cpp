@@ -170,24 +170,26 @@ enum TYPE Check_Type(char* buf, int pos)
 }
 */
 
+
+
 void Print_Operation(enum OPERATION op, FILE* file)
 {
     switch(op)
     {
     case ADD:
-        fprintf(file, "ADD ");
+        fprintf(file, "+ ");
         break;
     case SUB:
-        fprintf(file, "SUB ");
+        fprintf(file, "- ");
         break;
     case MUL:
-        fprintf(file, "MUL ");
+        fprintf(file, "* ");
         break;
     case DIV:
-        fprintf(file, "DIV ");
+        fprintf(file, "/ ");
         break;
     case SQRT:
-        fprintf(file, "SQRT ");
+        fprintf(file, "sqrt ");
         break;
     default:
         printf("\033[31mNO_OPERATION\033[0m");
@@ -209,7 +211,7 @@ void Print_Node(struct Node* node, FILE* file)
 void Print_In_Order(struct Node* node)
 {
     if(node == NULL){
-        printf("null ");
+        printf("_ ");
         return;
     }
 
@@ -248,7 +250,7 @@ char* Read_file(FILE* file)
 
 struct Node* Read_and_Insert_Node(struct Tree* tree, struct Node* now_node, char* buf, int indicator, int i)
 {
-    union Value value = {};
+    struct Value value = {};
     char str_op[SIZE_STR] = "";
     double new_val = 0;
 
