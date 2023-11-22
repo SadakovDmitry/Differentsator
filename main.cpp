@@ -6,7 +6,9 @@
 int main()
 {
     struct Tree* tree = (struct Tree*) calloc(1, sizeof(struct Tree));
-    Convert_file_to_tree_with_pointers(tree);
+    //Convert_Pre_Order_Tree(tree);
+    //Convert_In_Order_Tree(tree);
+    Read_tree_file(tree);
 
     Tree_Dump(tree);
 
