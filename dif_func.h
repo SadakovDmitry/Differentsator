@@ -27,12 +27,14 @@ struct Tree
 {
     struct Node* root;
     int size;
+    int len_tree_buf;
 };
 
 struct Value
 {
     enum OPERATION op;
     double num;
+    char var;
 };
 
 typedef Value Tree_t;

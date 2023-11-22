@@ -45,7 +45,7 @@ struct Node* Insert_to_Pointer(struct Tree* tree, struct Value* value, struct No
         now_node -> right = new_node;
     }
 
-    return new_node;
+    return new_node;                //new_node
 }
 
 double Eval(struct Node* node)
@@ -77,6 +77,7 @@ double Eval(struct Node* node)
         exit(1);
     }
 }
+
 /*
 void Check_Operation(struct Node* node)
 {
