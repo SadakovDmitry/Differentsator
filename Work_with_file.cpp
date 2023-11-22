@@ -4,6 +4,7 @@
 
 enum OPERATION Convert_op_to_enum(char* str_op)
 {
+    /*
     if(strcasecmp("ADD", str_op) == 0)
     {
         return ADD;
@@ -27,6 +28,32 @@ enum OPERATION Convert_op_to_enum(char* str_op)
     else
     {
         printf("\n\033[33mERROR\033[0m uncorrect operation!!!\n");
+        exit(1);
+    }
+    */
+    if(strcasecmp("+", str_op) == 0)
+    {
+        return ADD;
+    }
+    if(strcasecmp("*", str_op) == 0)
+    {
+        return MUL;
+    }
+    if(strcasecmp("-", str_op) == 0)
+    {
+        return SUB;
+    }
+    if(strcasecmp("/", str_op) == 0)
+    {
+        return DIV;
+    }
+    if(strcasecmp("√", str_op) == 0)
+    {
+        return SQRT;
+    }
+    else
+    {
+        printf("\n\033[31mERROR\033[0m uncorrect operation!!!\n");
         exit(1);
     }
 
@@ -273,6 +300,96 @@ struct Node* Read_and_Insert_Node(struct Tree* tree, struct Node* now_node, char
     return now_node;
 }
 
+void Set_Node_Value(struct Node* node, char* buf, int i)
+{
+    char str_op[SIZE_STR] = "";
+    double new_val = 0;
+
+    if(sscanf(&buf[i], "%lf", &new_val) == 1)
+    {
+        printf("\nnew_val = %f\n", new_val);
+        node -> type = NUM;
+        (node -> val).num = new_val;
+    }
+    else
+    {
+        sscanf(&buf[i], "%s", str_op);
+
+        printf("\nstr_op = %s\n", str_op);
+        enum OPERATION op = Convert_op_to_enum(str_op);
+
+        node -> type = OP;
+        (node -> val).op = op;
+    }
+}
+
+void Convert_In_Order_Tree(struct Tree* tree)
+{
+    struct Value value = {};
+    int open_brackets = 0;
+    int close_brackets = 0;
+    struct Node* temp = NULL;
+    int i = 0;
+    int indicator = INSERT_LEFT;
+
+    FILE* file = fopen("Tree.txt", "r");
+
+    char* buf = Read_file(file);
+
+    struct Node* now_node = tree -> root;
+
+    while (true)
+    {
+        if(buf[i] == '(')
+        {
+            open_brackets++;
+            i++;
+
+            temp = now_node;
+            //now_node = Read_and_Insert_Node(tree, now_node, buf, indicator, i);
+            now_node = Insert_to_Pointer(tree, &value, now_node, indicator, NUM);
+            now_node -> prev = temp;
+
+            indicator = INSERT_LEFT;
+        }
+        else if(buf[i] == ')')
+        {
+            close_brackets++;
+            now_node = now_node -> prev;
+
+            if (indicator == INSERT_LEFT)
+            {
+                Set_Node_Value(now_node, buf, i + 1);
+            }
+
+            indicator = INSERT_RIGHT;
+        }
+        else if(buf[i] == '_')
+        {
+            if (indicator == INSERT_LEFT)
+            {
+                Set_Node_Value(now_node, buf, i + 1);
+                indicator = indicator * INSERT_RIGHT;
+            }
+
+            //indicator = indicator * INSERT_RIGHT;
+            i++;
+        }
+
+        if(close_brackets == open_brackets)
+        {
+            break;
+        }
+        i++;
+
+        #ifdef DUMP_ON_TREE
+            Tree_Dump(tree);
+        #endif
+    }
+    fclose(file);
+}
+
+
 void Convert_file_to_tree_with_pointers(struct Tree* tree)
 {
     int open_brackets = 0;
@@ -307,10 +424,10 @@ void Convert_file_to_tree_with_pointers(struct Tree* tree)
             now_node = now_node -> prev;
             indicator = INSERT_RIGHT;
         }
-        else if(strncmp(&buf[i], "nil", 3) == 0)
+        else if(buf[i] == '_')
         {
             indicator = indicator * INSERT_RIGHT;
-            i = i + 3;
+            i++;
         }
 
         if(close_brackets == open_brackets)
@@ -328,3 +445,91 @@ void Convert_file_to_tree_with_pointers(struct Tree* tree)
 
 
 
+
+
+void Read_Next_Node(struct Tree* tree, struct Node* node, char* buf, int i)
+{
+    Skip_Space(buf, &i);
+
+    if(buf[i] == '(')
+    {
+        i++;
+        Skip_Space(buf, &i);
+
+        node = Insert_to_Pointer(tree, &value, node, INSERT_LEFT, NUM);
+        Read_Next_Node(tree, node, buf, i);                                 //3
+
+        Set_Node_Value(node, char* buf, int i);
+        Read_Next_Node(tree, node, buf, i);                                 //0
+
+        node = node -> prev;
+
+        //Set_Node_Value(node, char* buf, int i);
+        Read_Next_Node(node, buf, i);                                       //0
+        i++;
+        Skip_Space(buf, &i);
+
+        //i++;
+        //Skip_Space(buf, &i);
+
+        node = Insert_to_Pointer(tree, &value, node, INSERT_RIGHT, NUM);
+        Read_Next_Node(node, buf, i);                                       //0
+
+        return;
+        //Set_Node_Value(node, char* buf, int i);
+        //Read_Next_Node(node, buf, i);
+
+        //Read_Next_Node(node, buf, i);
+
+
+    }
+    if(buf[i] == ')')
+    {
+        i++;
+        Skip_Space(buf, &i);
+
+        //node = node -> prev;
+        return;
+    }
+    if(buf[i] == '_')
+    {
+        i++;
+        Skip_Space(buf, &i);
+        //Set_Node_Value(node, buf, i);
+        Read_Next_Node(tree, node, buf, i);
+        return;
+    }
+
+    return;
+}
+
+void Read_tree_file(struct Tree* tree)
+{
+    struct Value value = {};
+    int open_brackets = 0;
+    int close_brackets = 0;
+    struct Node* temp = NULL;
+    int i = 0;
+    int indicator = INSERT_LEFT;
+
+    FILE* file = fopen("Tree.txt", "r");
+
+    char* buf = Read_file(file);
+
+    fclose(file);
+
+    Read_Next_Node(tree -> root);
+}
+
+void Skip_Space(char* buf, int* i)
+{
+    while(buf[i] == ' ')
+    {
+        *(i)++;
+    }
+}
+
+
+
+node = Insert_to_Pointer(tree, &value, node, INSERT_LEFT, NUM);
+Read_Next_Node(tree, node, buf, i);                                 //3
