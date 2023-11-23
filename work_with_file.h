@@ -4,11 +4,13 @@
 #include "lib.h"
 
 void Beautiful_Dump();
+void Print_to_TEX(struct Node* node, FILE* file_tex);
 void Print_Operation(enum OPERATION op, FILE* file);
+void Print_Operation_to_TEX(enum OPERATION op, FILE* file);
 void Print_Node(struct Node* node, FILE* file);
-void Print_In_Order(struct Node* node);
+void Print_In_Order(struct Node* node, FILE* file);
 void Tree_Dump(struct Tree* tree);
-enum OPERATION Convert_op_to_enum(char* str_op);
+enum OPERATION Convert_op_to_enum(struct Node* node, char* str_op);
 char* Read_file(FILE* file);
 struct Node* Read_and_Insert_Node(struct Tree* tree, struct Node* now_node, char* buf, int indicator, int i);
 void Convert_Pre_Order_Tree(struct Tree* tree);
