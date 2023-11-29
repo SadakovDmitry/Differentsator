@@ -9,24 +9,31 @@ int main()
     struct Variable* var_buf = (struct Variable*) calloc(10, sizeof(struct Variable));
     tree -> var_buf = var_buf;
     tree -> num_var = 0;
+    tree -> version = 0;
 
-    //Convert_Pre_Order_Tree(tree);
-    //Convert_In_Order_Tree(tree);
     Read_tree_file(tree);
 
-    Input_variable(tree);
-
-    Tree_Dump(tree);
-
+    //Input_variable(tree);
     FILE* file_tex = fopen("Expression.tex", "w");
     fprintf(file_tex, "$$ ");
     Print_to_TEX(tree -> root, file_tex);
-    fprintf(file_tex, "$$");
-    fclose(file_tex);
+    fprintf(file_tex, " = ");
 
-
-    double answer = Eval(tree, tree -> root);
-    printf("\n\033[32mEnd = %lf\033[0m\n", answer);
+    //Dtor_Node(tree -> root);
+    tree -> root = Der(tree -> root);
 
     Draw_Graph(tree);
+
+    Reduce_Tree(tree, tree -> root);
+
+    Tree_Dump(tree);
+
+    Print_to_TEX(tree -> root, file_tex);
+    fprintf(file_tex, "$$\\newline\n");
+    fclose(file_tex);
+
+    //double answer = Eval(tree, tree -> root);
+    //printf("\n\033[32mEnd = %lf\033[0m\n", answer);
+
+    //Draw_Graph(tree);
 }

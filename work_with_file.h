@@ -20,7 +20,7 @@ void Print_Node_to_file(struct Node* node, FILE* file_dot);
 void Arrows_in_Graph(struct Node* node, FILE* file_dot);
 void Draw_Graph(struct Tree* tree);
 void Read_tree_file(struct Tree* tree);
-void Insert_Node_from_file(struct Tree* tree, struct Node* node, struct Value value, char* buf, int* i, int L_or_R_insert);
+void Insert_Node_from_file(struct Tree* tree, struct Node* node, Tree_t value, char* buf, int* i, int L_or_R_insert);
 void Skip_Value(char* buf, int* i);
 
 #endif
