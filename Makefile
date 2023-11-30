@@ -2,7 +2,7 @@ TARGET = Assembler
 
 SRC = $(wildcard *.cpp)
 OBJ = $(patsubst %.cpp, %.o, $(SRC))
-FLAGS = -fsanitize=address -Wall -Wextra
+FLAGS = -fsanitize=address -Wall -Wextra -std=c++20
 
 $(TARGET) : $(OBJ)
 		g++ $(OBJ) $(FLAGS) -o $(TARGET)
