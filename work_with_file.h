@@ -22,5 +22,8 @@ void Draw_Graph(struct Tree* tree);
 void Read_tree_file(struct Tree* tree);
 void Insert_Node_from_file(struct Tree* tree, struct Node* node, Tree_t value, char* buf, int* i, int L_or_R_insert);
 void Skip_Value(char* buf, int* i);
+void Print_Title_TEX(FILE* file_tex);
+void Print_Tex(struct Node* node, FILE* file_tex, struct Remove* rems);
+void Print_Node_to_Tex(struct Node* node, FILE* file_tex);
 
 #endif

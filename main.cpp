@@ -6,34 +6,40 @@
 int main()
 {
     struct Tree* tree = (struct Tree*) calloc(1, sizeof(struct Tree));
-    struct Variable* var_buf = (struct Variable*) calloc(10, sizeof(struct Variable));
+    struct Variable* var_buf = (struct Variable*) calloc(NUM_VAR, sizeof(struct Variable));
+    struct Remove* rems = (struct Remove*) calloc(5, sizeof(struct Remove));
     tree -> var_buf = var_buf;
     tree -> num_var = 0;
     tree -> version = 0;
 
     Read_tree_file(tree);
+   // Calculate_Size(tree -> root);
 
-    //Input_variable(tree);
     FILE* file_tex = fopen("Expression.tex", "w");
-    fprintf(file_tex, "$$ ");
-    Print_to_TEX(tree -> root, file_tex);
-    fprintf(file_tex, " = ");
+    Print_Title_TEX(file_tex);
+    //fprintf(file_tex, "$$ ");
+    //Print_Tex(tree -> root, file_tex);
+    //fprintf(file_tex, " = ");
 
-    //Dtor_Node(tree -> root);
-    tree -> root = Der(tree -> root);
+    Dif_n(tree, file_tex, rems);
+    Calculate_Size(tree -> root);
+    fprintf(file_tex, "\n\\end{document}\n");
+    //tree -> root = Der(tree -> root);
 
-    Draw_Graph(tree);
 
-    Reduce_Tree(tree, tree -> root);
-
+    //Reduce_Tree(tree, tree -> root);
+    fprintf(file_tex, "$$");
+    Print_Tex(rems[0].rem, file_tex, rems);
+    fprintf(file_tex, "$$\n");
     Tree_Dump(tree);
 
-    Print_to_TEX(tree -> root, file_tex);
-    fprintf(file_tex, "$$\\newline\n");
+    //Print_to_TEX(tree -> root, file_tex);
+    //fprintf(file_tex, "\n\t\t");
+    //Print_Tex(tree -> root, file_tex);
+    //fprintf(file_tex, "$$\\newline\n");
+    //fprintf(file_tex, "\n\\end{document}\n");
     fclose(file_tex);
 
-    //double answer = Eval(tree, tree -> root);
-    //printf("\n\033[32mEnd = %lf\033[0m\n", answer);
-
-    //Draw_Graph(tree);
+    Draw_Graph(tree);
+    system("make draw");
 }

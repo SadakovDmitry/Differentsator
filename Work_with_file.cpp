@@ -25,7 +25,7 @@ void Print_Node_depends_of_type(struct Node* node, FILE* file_dot)
     {
         fprintf(file_dot, "%lld [color = \"red\", shape = record, style = \"rounded\", label = \"{", (long long int) node);
         Print_Node(node, file_dot);
-        fprintf(file_dot, " | OP | pri: %d |{ <left> left | <right> right }}\"];\n\t", node -> priority);
+        fprintf(file_dot, " | OP | pri: %d | size: %d|{ <left> left | <right> right }}\"];\n\t", node -> priority, node -> size);
     }
     else if(node -> type == NUM)
     {
@@ -95,7 +95,7 @@ void Draw_Graph(struct Tree* tree)
 
 
 
-//                                                Print to consol
+//                                                 Print to consol
 //------------------------------------------------------------------------------------------------------------------------------
 void Print_Operation(enum OPERATION op, FILE* file)
 {
@@ -141,7 +141,7 @@ void Print_In_Order(struct Node* node, FILE* file)
 
     if(node -> left != NULL)
     {
-        if((node -> left) -> priority < node -> priority)
+        if((node -> left) -> priority > node -> priority)
         {
             fprintf(file, "( ");
         }
@@ -153,7 +153,7 @@ void Print_In_Order(struct Node* node, FILE* file)
 
     if(node -> right != NULL)
     {
-        if((node -> right) -> priority < node -> priority)
+        if((node -> right) -> priority > node -> priority)
         {
             fprintf(file, ") ");
         }
@@ -161,7 +161,7 @@ void Print_In_Order(struct Node* node, FILE* file)
 
 }
 //------------------------------------------------------------------------------------------------------------------------------
-//                                                      END
+//                                                       END
 
 
 
@@ -264,8 +264,20 @@ void Print_Operation_to_TEX(enum OPERATION op, FILE* file_tex)
     }
 }
 
+void Print_Title_TEX(FILE* file_tex)
+{
+    fprintf(file_tex,   "\\documentclass{article}\n"
+                        "\\usepackage[utf8]{inputenc}\n"
+                        "\\usepackage[russian]{babel}\n"
+                        "\\title{Матанализ от деда}\n"
+                        "\\author{Садаков Дмитрий Б05-331 }\n\n"
+                        "\\begin{document}\n"
+                        "\\maketitle\n");
+}
+
 void Print_to_TEX(struct Node* node, FILE* file_tex)
 {
+
     if(node == NULL){
         return;
     }
@@ -282,7 +294,7 @@ void Print_to_TEX(struct Node* node, FILE* file_tex)
         }
         else if(node -> left != NULL)
         {
-            if((node -> left) -> priority < node -> priority)
+            if((node -> left) -> priority > node -> priority)
             {
             fprintf(file_tex, "( ");
             }
@@ -319,14 +331,96 @@ void Print_to_TEX(struct Node* node, FILE* file_tex)
         {
             fprintf(file_tex, "} ");
         }
-        if(node -> right != NULL)
+        else if(node -> right != NULL)
         {
-            if((node -> right) -> priority < node -> priority)
+            if((node -> right) -> priority > node -> priority)
             {
                 fprintf(file_tex, ") ");
             }
         }
     }
+}
+
+
+
+void Print_Node_to_Tex(struct Node* node, FILE* file_tex)
+{
+    switch (node -> type)
+    {
+    case OP:
+        break;
+    case NUM:
+        fprintf(file_tex, "%lg", (node -> val).num);
+        break;
+    case VAR:
+        fprintf(file_tex, "%s", (node -> val).var);
+        break;
+    default:
+        printf(red(ERROR) " uncorrect type in \"" green(Print_Node_to_Tex)"\"!!!");
+        exit(1);
+    }
+}
+
+void Print_Tex(struct Node* node, FILE* file_tex, struct Remove* rems)
+{
+    if(node == NULL){
+        return;
+    }
+
+    //--------------------------------------------------------------------------------------
+    #define OP(name, str_op, num_op, def, len, prior, calculate, start, mid, end, ...)  \
+        case name:                                                                      \
+            if(node -> left != NULL)                                                    \
+            {                                                                           \
+                if(((node -> left) -> val).op == ADD && (node -> val).op == MUL)        \
+                {                                                                       \
+                    fprintf(file_tex, "(");                                             \
+                }                                                                       \
+            }                                                                           \
+            fprintf(file_tex, start);                                                   \
+            Print_Tex(node -> left, file_tex, rems);                                    \
+            fprintf(file_tex, mid);                                                     \
+            Print_Tex(node -> right, file_tex, rems);                                   \
+            fprintf(file_tex, end);                                                     \
+            if(node -> right != NULL)                                                   \
+            {                                                                           \
+                if(((node -> right) -> val).op == ADD && (node -> val).op == MUL)       \
+                {                                                                       \
+                    fprintf(file_tex, ")");                                             \
+                }                                                                       \
+            }                                                                           \
+            break;
+    //--------------------------------------------------------------------------------------
+
+    if(node -> type == OP)
+    {
+
+        if(Join_Long_Tree(node))
+        {
+            //printf("\nhuy\n");
+            //fprintf(file_tex, "\n A \n");
+            //rems[0].name = "A";
+            //rems[0].rem = node;
+            //Print_Tex(node, file_tex, rems);
+            //return;
+        }
+        switch((node -> val).op)
+        {
+            #include "operators.h"
+        }
+
+        //fprintf(stderr, green(size_node) " = %d\n", node -> size);
+    }
+    if(node -> type == VAR || node -> type == NUM)
+    {
+        Print_Tex(node -> left, file_tex, rems);
+        Print_Node_to_Tex(node, file_tex);
+        Print_Tex(node -> right, file_tex, rems);
+        return;
+    }
+
+    #undef OP
+
 }
 //------------------------------------------------------------------------------------------------------------------------------
 //                                                      END
