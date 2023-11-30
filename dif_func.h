@@ -1,12 +1,16 @@
 #ifndef USED_DF
 #define USED_DF
 
+#include "lib.h"
+
 #define tree_t "%s"
 #define red(str) "\033[31m"#str"\033[0m"
 #define green(str) "\033[32m"#str"\033[0m"
 
 #define L               node->left
 #define R               node->right
+#define Ls              Calculate_Size((node->left))
+#define Rs              Calculate_Size((node->right))
 #define CONST(val)      Create_Node(NUM, {.num = val}, NULL, NULL, node)
 #define D(node)         Der(node)
 #define C(node)         Copy_Subtree(node)
@@ -28,6 +32,8 @@ const int SIZE_STR = 100;
 const int INSERT_LEFT = 1;
 const int INSERT_RIGHT = -1;
 const int NUM_PRIORITY = 3;
+const int MAX_LEN_EXP = 50;
+const int NUM_VAR = 10;
 
 enum TYPE
 {
@@ -85,9 +91,16 @@ struct Node
     enum TYPE type;
     Tree_t val;
     int priority;
+    int size;
     struct Node* left;
     struct Node* right;
     struct Node* prev;
+};
+
+struct Remove
+{
+    char* name;
+    struct Node* rem;
 };
 
 struct Node* Insert_to_Pointer(struct Tree* tree, Tree_t* value, struct Node* now_node, int indicator, enum TYPE type);
@@ -103,6 +116,9 @@ void Reduce_Tree(struct Tree* tree, struct Node* node);
 int Reduce_Const(struct Node* node);
 double Calculate_val(struct Node* node);
 int Dtor_SubTree(struct Node* node);
+void Dif_n(struct Tree* tree, FILE* file_tex, struct Remove* rems);
+int Calculate_Size(struct Node* node);
+int Join_Long_Tree(struct Node* node);
 
 #endif
 
