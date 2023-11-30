@@ -86,6 +86,9 @@ int Check_Operation(struct Node* node)
             return 0;
         }
         break;
+    default:
+        fprintf(stderr, red(ERROR)" unkniwn type in\"" green(Check_Operation)"\"");
+        exit(1);
     }
 }
 
@@ -358,7 +361,7 @@ int Reduce_MUL(struct Node* node)
     assert(node -> left);
     assert(&((node -> right) -> val));
 
-    if(((node -> right) -> val).num == 1)
+    if((R) -> type == NUM && ((R) -> val).num == 1)
     {
         Node* tmp_node = L;
         //Delete_Node(&(R));
@@ -367,7 +370,7 @@ int Reduce_MUL(struct Node* node)
 
         return 1;
     }
-    if(((node -> left) -> val).num == 1)
+    if((L) -> type == NUM && ((L) -> val).num == 1)
     {
         Node* tmp_node = R;
         Delete_Node(&(L));
@@ -376,7 +379,7 @@ int Reduce_MUL(struct Node* node)
 
         return 1;
     }
-    if(((node -> left) -> val).num == 0 || ((node -> right) -> val).num == 0)
+    if((((L) -> type == NUM && (L) -> val).num == 0) || ((R) -> type == NUM &&((R) -> val).num == 0))
     {
 
         //Delete_Node(&(R));
@@ -391,7 +394,7 @@ int Reduce_MUL(struct Node* node)
 int Reduce_ADD(struct Node* node)
 {
 
-    if(((node -> left) -> val).num == 0)
+    if((L) -> type == NUM && ((L) -> val).num == 0)
     {
         Node* tmp_node = R;
         //Delete_Node(&(L));
@@ -400,10 +403,10 @@ int Reduce_ADD(struct Node* node)
 
         return 1;
     }
-    if(((node -> right) -> val).num == 0)
+    if((R) -> type == NUM && ((R) -> val).num == 0)
     {
         Node* tmp_node = L;
-        //Delete_Node(&(R));
+        Delete_Node(&(R));
         Copy_Node(L, node);
         //Delete_Node(&(tmp_node));
 
@@ -415,7 +418,7 @@ int Reduce_ADD(struct Node* node)
 
 int Reduce_POW(struct Node* node)
 {
-    if(((node -> left) -> val).num == 1)
+    if((L) -> type == NUM && ((L) -> val).num == 1)
     {
         Node* tmp_node = L;
         Delete_Node(&(R));
@@ -424,7 +427,7 @@ int Reduce_POW(struct Node* node)
 
         return 1;
     }
-    if(((node -> right) -> val).num == 1)
+    if((R) -> type == NUM && ((R) -> val).num == 1)
     {
         Node* tmp_node = L;
         Delete_Node(&(R));
@@ -433,7 +436,7 @@ int Reduce_POW(struct Node* node)
 
         return 1;
     }
-    if(((node -> left) -> val).num == 0)
+    if((L) -> type == NUM && ((L) -> val).num == 0)
     {
         Node* tmp_node = L;
         Delete_Node(&(R));
@@ -442,7 +445,7 @@ int Reduce_POW(struct Node* node)
 
         return 1;
     }
-    if(((node -> right) -> val).num == 0)
+    if((R) -> type == NUM && ((R) -> val).num == 0)
     {
         Delete_Node(&(R));
         Delete_Node(&(L));
