@@ -2,6 +2,9 @@
 #include "dif_func.h"
 #include "work_with_file.h"
 
+
+//                                                    Delete
+//------------------------------------------------------------------------------------------------------------------------------
 int Dtor_SubTree(struct Node* node)
 {
     assert(node);
@@ -23,59 +26,37 @@ int Dtor_SubTree(struct Node* node)
     return 1;
 }
 
-void Delete_Node(struct Node* node)
+void Delete_Node(struct Node** node)
 {
-    free(node);
-    node = NULL;
-
-
+    free(*node);
+    *node = NULL;
 }
+//------------------------------------------------------------------------------------------------------------------------------
+//                                                      END
 
 
 
 
+
+//                                                  Create_Tree
+//------------------------------------------------------------------------------------------------------------------------------
 int Set_Priority(enum OPERATION op)
 {
     switch(op)
     {
+    //----------------------------------------------------------
     #define OP(name, str, num_op, def, len, op_prior, ...)   \
-        case name:                                      \
+        case name:                                           \
             return op_prior;
+    //----------------------------------------------------------
 
     #include "operators.h"
+
     default:
         fprintf(stderr, "\n" red(NO_OPERATION)" in Print_in_Operation");
     }
+
     #undef OP
-    /*
-switch(op)
-    {
-    case ADD:
-        return 0;
-    case SUB:
-        return 0;
-    case MUL:
-        return 1;
-    case DIV:
-        return 1;
-    case SQRT:
-        return 20;
-    case COS:
-        return 0;
-    case SIN:
-        return 0;
-    case TAN:
-        return 0;
-    case COT:
-        return 0;
-    case POW:
-        return -100;
-    case LOG:
-        return 1;
-    default:
-        fprintf(stderr, "\n\033[31mNO_OPERATION\033[0m in Print_in_Operation");
-    }
-    */
 }
 
 struct Node* Create_Node(enum TYPE type, Tree_t value, struct Node* left_node, struct Node* right_node, struct Node* prev_node)
@@ -91,6 +72,10 @@ struct Node* Create_Node(enum TYPE type, Tree_t value, struct Node* left_node, s
     if(type == OP)
     {
         new_node -> priority = Set_Priority(value.op);
+    }
+    if(type == NUM || type == VAR)
+    {
+         new_node -> priority = NUM_PRIORITY;
     }
 
     return new_node;
@@ -189,59 +174,24 @@ void Input_variable(struct Tree* tree)
 
     for (int i = 0; i < tree -> num_var; i++)
     {
-        printf("\nPrint value of \033[32m%s\033[0m !\n", (tree -> var_buf)[i].var);
+        printf("\nPrint value of " green(%s)" !\n", (tree -> var_buf)[i].var);
         scanf("%lf", &value);
 
         (tree -> var_buf)[i].val = value;
     }
 }
+//------------------------------------------------------------------------------------------------------------------------------
+//                                                      END
 
 
-/*
-struct Node* Create_NUM_Node(enum TYPE type, double val, struct Node* left_node, struct Node* right_node)
+
+
+
+//                                                  Differinstor
+//------------------------------------------------------------------------------------------------------------------------------
+struct Node* Copy_Subtree(struct Node* node)
 {
-    struct Node* new_node = (struct Node*) calloc(1, sizeof(struct Node));
-
-    (new_node -> val).num = val;
-    new_node -> type = type;
-    new_node -> left = left_node;
-    new_node -> right = right_node;
-    new_node -> priority = -1;
-
-    return new_node;
-}
-
-struct Node* Create_VAR_Node(enum TYPE type, char* val, struct Node* left_node, struct Node* right_node)
-{
-    struct Node* new_node = (struct Node*) calloc(1, sizeof(struct Node));
-
-    (new_node -> val).var = val;
-    new_node -> type = type;
-    new_node -> left = left_node;
-    new_node -> right = right_node;
-    new_node -> priority = -1;
-
-    return new_node;
-}
-
-struct Node* Create_OP_Node(enum TYPE type, enum OPERATION val, struct Node* left_node, struct Node* right_node)
-{
-    struct Node* new_node = (struct Node*) calloc(1, sizeof(struct Node));
-
-    (new_node -> val).op = val;
-    new_node -> type = type;
-    new_node -> left = left_node;
-    new_node -> right = right_node;
-    new_node -> priority = Set_Priority(val);
-
-    return new_node;
-}
-*/
-
-
-struct Node* Copy_Node(struct Node* node)
-{
-    assert(node);
+    if(node == NULL) return NULL;
 
     struct Node* new_node = (struct Node*) calloc(1, sizeof(struct Node));
 
@@ -259,9 +209,9 @@ struct Node* Copy_Node(struct Node* node)
     }
 
     new_node -> type  = node -> type;
-    new_node -> left  = node -> left;
-    new_node -> right = node -> right;
-    new_node -> prev  = node -> prev;
+    new_node -> left = Copy_Subtree(node -> left);
+    new_node -> right = Copy_Subtree(node -> right);
+    new_node -> prev = node -> prev;
     new_node -> priority = node -> priority;
 
     return new_node;
@@ -271,6 +221,8 @@ struct Node* Der(struct Node* node)
 {
     assert(node);
 
+    FILE* file_tex = fopen("Expression.tex", "a");
+
     switch (node -> type)
     {
     case NUM:
@@ -279,89 +231,90 @@ struct Node* Der(struct Node* node)
         if (strcmp((node -> val).var, "e") == 0) return E;
         else return CONST(1);
     default:
-
+/*
+    Print_to_TEX(node, file_tex);        \
+            fprintf(file_tex,"\n");             \
+            fclose(file_tex);                    \
+*/
     //--------------------------------------------------------
     #define OP(name, str_symbol, enum, dif, ...) \
         case name:                               \
-            return dif;
+            return dif;                          \
+            break;
     //--------------------------------------------------------
 
     switch((node -> val).op)
     {
     #include "operators.h"
-    /*
-        case ADD:
-            return ADD(D(L), D(R));
-        case SUB:
-            return SUB(D(L), D(R));
-        case MUL:
-            return ADD(MUL(C(L), Der(R)) , MUL(D(L), C(L)));
-        case DIV:
-            return DIV(SUB(MUL(C(L), D(R)) , MUL(Der(L), C(L))), POW(C(R), CONST(2)));
-        case SQRT:
-            return MUL(D(R), DIV(CONST(1), MUL(CONST(2), C(node))));
-        case SIN:
-            return MUL(D(R), COS(C(R)));
-        case COS:
-            return MUL(D(R), MUL(CONST(-1), SIN(C(R))));
-        case TAN:
-            return MUL(D(R), DIV(CONST(1), POW(COS(C(R)), CONST(2))));
-        case COT:
-            return MUL(D(R), MUL(CONST(-1), SIN(DIV(CONST(1), POW(SIN(C(R)), CONST(2))))));
-        case POW:
-            return MUL(C(node), ADD(MUL(D(R), LOG(E, C(L))), MUL(DIV(Der(L), C(L)), C(R))));
-        case LOG:
-            return MUL(D(R), DIV(CONST(1), C(R)));
-        default:
-            return C(node);
-        */
     }
 
     #undef OP
     return node;
     }
 }
+//------------------------------------------------------------------------------------------------------------------------------
+//                                                      END
+
+
+
+
+
+//                                              Reduce_Tree_functions
+//------------------------------------------------------------------------------------------------------------------------------
+
+struct Node* Copy_Node(struct Node* sourse_node, struct Node* dest_node)
+{
+    switch(sourse_node -> type)
+    {
+    case OP:
+        (dest_node -> val).op = (sourse_node -> val).op;
+        break;
+    case NUM:
+        (dest_node -> val).num = (sourse_node -> val).num;
+        break;
+    case VAR:
+        (dest_node -> val).var = (sourse_node -> val).var;
+        break;
+    default:
+        printf(red(ERROR) "no type node in C\"" green(Copy_Node) "\"");
+        exit(1);
+    }
+
+    dest_node -> left = sourse_node -> left;
+    dest_node -> right = sourse_node -> right;
+    dest_node -> type = sourse_node -> type;
+    dest_node -> priority = sourse_node -> priority;
+    //(sourse_node -> left) -> prev = dest_node;
+    //(sourse_node -> right) -> prev = dest_node;
+
+    return sourse_node;
+}
 
 double Calculate_val(struct Node* node)
 {
     assert(node);
+    assert(R);
 
-    double left = ((node -> left) -> val).num;
+    double left = 0;
+
+    if(L)
+    {
+        left = ((node -> left) -> val).num;
+    }
+
     double right = ((node -> right) -> val).num;
 
     //---------------------------------------------------------------
     #define OP(name, str_op, num_op, def, len, priority, calculate, ...) \
-    case name:                                                      \
+    case name:                                                           \
         return calculate;
     //---------------------------------------------------------------
 
     switch((node -> val).op)
     {
+
     #include "operators.h"
-    /*
-    case ADD:
-        return left + right;
-    case SUB:
-        return left - right;
-    case MUL:
-        return left * right;
-    case DIV:
-        return left / right;
-    case SQRT:
-        return sqrt(right);
-    case POW:
-        return pow(left, right);
-    case SIN:
-        return sin(right);
-    case COS:
-        return cos(right);
-    case TAN:
-        return tan(right);
-    case COT:
-        return 1 / tan(right);
-    case LOG:
-        return log(right);
-    */
+
     default:
         fprintf(stderr, "\n" red(ERROR) " no operation!!!");
         exit(1);
@@ -369,28 +322,32 @@ double Calculate_val(struct Node* node)
     #undef OP
 }
 
-
-
+/*
 int Reduce_MUL_Left(struct Node* node)
 {
+    assert(node);
+    assert(L);
+    assert((L) -> right);
+    assert((L) -> left);
+
     struct Node* tmp_node = L;
 
     if((((L) -> right) -> val).num == 1)
     {
         L = (L) -> left;
-        Delete_Node(tmp_node);
+        Delete_Node(&tmp_node);
         return 1;
     }
     if((((L) -> left) -> val).num == 1)
     {
         L = (L) -> right;
-        Delete_Node(tmp_node);
+        Delete_Node(&tmp_node);
         return 1;
     }
     if((((L) -> left) -> val).num == 0 || (((L) -> right) -> val).num == 0)
     {
         L = CONST(0);
-        Delete_Node(tmp_node);
+        Delete_Node(&tmp_node);
         return 1;
     }
 
@@ -399,18 +356,23 @@ int Reduce_MUL_Left(struct Node* node)
 
 int Reduce_ADD_Left(struct Node* node)
 {
+    assert(node);
+    assert(L);
+    assert((L) -> right);
+    assert((L) -> left);
+
     struct Node* tmp_node = L;
 
     if((((L) -> left) -> val).num == 0)
     {
         L = (L) -> right;
-        Delete_Node(tmp_node);
+        Delete_Node(&tmp_node);
         return 1;
     }
     if((((L) -> right) -> val).num == 0)
     {
         L = (L) -> left;
-        Delete_Node(tmp_node);
+        Delete_Node(&tmp_node);
         return 1;
     }
 
@@ -419,62 +381,98 @@ int Reduce_ADD_Left(struct Node* node)
 
 int Reduce_POW_Left(struct Node* node)
 {
+    assert(node);
+    assert(L);
+    assert((L) -> right);
+    assert((L) -> left);
+
     struct Node* tmp_node = L;
 
     if((((L) -> left) -> val).num == 1)
     {
         L = CONST(1);
-        Delete_Node(tmp_node);
+        Delete_Node(&tmp_node);
         return 1;
     }
     if((((L) -> right) -> val).num == 1)
     {
         L = (L) -> left;
-        Delete_Node(tmp_node);
+        Delete_Node(&tmp_node);
         return 1;
     }
     if((((L) -> left) -> val).num == 1)
     {
         L = CONST(0);
-        Delete_Node(tmp_node);
+        Delete_Node(&tmp_node);
         return 1;
     }
     if((((L) -> right) -> val).num == 1)
     {
         L = CONST(1);
-        Delete_Node(tmp_node);
+        Delete_Node(&tmp_node);
         return 1;
     }
 
     return 0;
 }
 
+int Join_Const_Left(struct Node* node)
+{
+    assert(node);
+    assert(L);
+    assert((L) -> right);
+
+    if((L) -> left)
+    {
+        if(((L) -> left) -> type == NUM)
+        {
+            printf(green(operation)" = %d\n", ((L) -> val).op);
+            double new_val = Calculate_val(L);
+            L = CONST(new_val);
+            return 1;
+        }
+
+        return 0;
+    }
+    else
+    {
+        printf(green(operation)" = %d\n", ((L) -> val).op);
+        double new_val = Calculate_val(L);
+        L = CONST(new_val);
+        return 1;
+    }
+}
 
 
 int Reduce_MUL_Right(struct Node* node)
 {
+    assert(node);
+    assert(L);
+    assert(R);
+    assert((R) -> right);
+    assert((R) -> left);
+
     struct Node* tmp_node = R;
 
     if((((R) -> right) -> val).num == 1)
     {
         R = (R) -> left;
-        Delete_Node(tmp_node);
+        Delete_Node(&tmp_node);
         return 1;
     }
-    if((((L) -> left) -> val).num == 1)
+    if((((R) -> left) -> val).num == 1)
     {
         R = (R) -> right;
-        Delete_Node(tmp_node);
+        Delete_Node(&tmp_node);
         return 1;
     }
     if((((R) -> left) -> val).num == 0 || (((R) -> right) -> val).num == 0)
     {
         R = CONST(0);
-        Delete_Node(tmp_node);
+        Delete_Node(&(tmp_node));
         return 1;
     }
 
-    //Delete_Node(tmp_node);
     return 0;
 }
 
@@ -485,13 +483,13 @@ int Reduce_ADD_Right(struct Node* node)
     if((((R) -> left) -> val).num == 0)
     {
         R = (R) -> right;
-        Delete_Node(tmp_node);
+        Delete_Node(&tmp_node);
         return 1;
     }
     if((((R) -> right) -> val).num == 0)
     {
         R = (R) -> left;
-        Delete_Node(tmp_node);
+        Delete_Node(&tmp_node);
         return 1;
     }
 
@@ -505,81 +503,271 @@ int Reduce_POW_Right(struct Node* node)
     if((((R) -> left) -> val).num == 1)
     {
         R = CONST(1);
-        Delete_Node(tmp_node);
+        Delete_Node(&tmp_node);
         return 1;
     }
     if((((R) -> right) -> val).num == 1)
     {
         R = (R) -> left;
-        Delete_Node(tmp_node);
+        Delete_Node(&tmp_node);
         return 1;
     }
     if((((R) -> left) -> val).num == 1)
     {
         R = CONST(0);
-        Delete_Node(tmp_node);
+        Delete_Node(&tmp_node);
         return 1;
     }
     if((((R) -> right) -> val).num == 1)
     {
         R = CONST(1);
-        Delete_Node(tmp_node);
+        Delete_Node(&tmp_node);
         return 1;
     }
 
     return 0;
 }
 
-void Join_Const(struct Node* node)
+int Join_Const_Right(struct Node* node)
 {
-    double new_val = Calculate_val(node);
-    node = CONST(new_val);
+    if((R) -> left)
+    {
+        if(((R) -> left) -> type == NUM)
+        {
+            printf(red(operation)" = %d\n", ((R) -> val).op);
+            double new_val = Calculate_val(R);
+            R = CONST(new_val);
+            return 1;
+        }
+
+        return 0;
+    }
+    else
+    {
+        printf(green(operation)" = %d\n", ((R) -> val).op);
+        double new_val = Calculate_val(R);
+        R = CONST(new_val);
+        return 1;
+    }
 }
 
 
+int Join_Left_Op(struct Node* node)
+{   /*
+    if(((L) -> right) -> type == NUM)
+    {
+        printf("\nsosi huy_L\n");
+        if(Join_Const_Left(node)) return 1;
+    }
+
+    switch(((node -> left) -> val).op)
+    {
+    case MUL:
+        printf("\nMUL_LEFT");
+        if (Reduce_MUL_Left(node)) return 1;
+        break;
+    case ADD:
+        printf("\nADD_LEFT");
+        if (Reduce_ADD_Left(node)) return 1;
+        break;
+    case POW:
+        printf("\nPOW_LEFT");
+        if (Reduce_POW_Left(node)) return 1;
+        break;
+    default:
+        break;
+    }
+
+    return 0;
+}
+
+int Join_Right_Op(struct Node* node)
+{   /*
+    if(((R) -> right) -> type == NUM)
+    {
+        printf("\nsosi huy_R\n");
+        if(Join_Const_Right(node)) return 1;
+    }
+
+    switch(((node -> right) -> val).op)
+    {
+    case MUL:
+        printf("\nMUL_RIGHT");
+        if (Reduce_MUL_Right(node)) return 1;
+        break;
+    case ADD:
+        printf("\nADD_RIGHT");
+        if (Reduce_ADD_Right(node)) return 1;
+        break;
+    case POW:
+        printf("\nPOW_RIGHT");
+        if (Reduce_POW_Right(node)) return 1;
+        break;
+    default:
+        break;
+    }
+
+    return 0;
+}
+*/
+
+int Reduce_MUL(struct Node* node)
+{
+    assert(node);
+    assert(node -> right);
+    assert(node -> left);
+    assert(&((node -> right) -> val));
+
+    if(((node -> right) -> val).num == 1)
+    {
+        Node* tmp_node = L;
+        Delete_Node(&(R));
+        Copy_Node(L, node);
+        Delete_Node(&(tmp_node));
+
+        return 1;
+    }
+    if(((node -> left) -> val).num == 1)
+    {
+        Node* tmp_node = R;
+        Delete_Node(&(L));
+        Copy_Node(R, node);
+        Delete_Node(&(tmp_node));
+
+        return 1;
+    }
+    if(((node -> left) -> val).num == 0 || ((node -> right) -> val).num == 0)
+    {
+
+        Delete_Node(&(R));
+        Copy_Node(CONST(0), node);
+
+        return 1;
+    }
+
+    return 0;
+}
+
+int Reduce_ADD(struct Node* node)
+{
+
+    if(((node -> left) -> val).num == 0)
+    {
+        Node* tmp_node = R;
+        Delete_Node(&(L));
+        Copy_Node(R, node);
+        Delete_Node(&(tmp_node));
+
+        return 1;
+    }
+    if(((node -> right) -> val).num == 0)
+    {
+        Node* tmp_node = L;
+        //Delete_Node(&(R));
+        Copy_Node(L, node);
+        Delete_Node(&(tmp_node));
+
+        return 1;
+    }
+
+    return 0;
+}
+
+int Reduce_POW(struct Node* node)
+{
+    if(((node -> left) -> val).num == 1)
+    {
+        Node* tmp_node = L;
+        Delete_Node(&(R));
+        Copy_Node(L, node);
+        Delete_Node(&(tmp_node));
+
+        return 1;
+    }
+    if(((node -> right) -> val).num == 1)
+    {
+        Node* tmp_node = L;
+        Delete_Node(&(R));
+        Copy_Node(L, node);
+        Delete_Node(&(tmp_node));
+
+        return 1;
+    }
+    if(((node -> left) -> val).num == 0)
+    {
+        Node* tmp_node = L;
+        Delete_Node(&(R));
+        Copy_Node(L, node);
+        Delete_Node(&(tmp_node));
+
+        return 1;
+    }
+    if(((node -> right) -> val).num == 0)
+    {
+        Delete_Node(&(R));
+        Delete_Node(&(L));
+        Copy_Node(CONST(1), node);
+
+        return 1;
+    }
+
+    return 0;
+}
+//------------------------------------------------------------------------------------------------------------------------------
+//                                                      END
 
 int Reduce_Const(struct Node* node)
 {
-    assert(node);
-
-    if(node -> left != NULL)
+    //assert(node);
+    /*
+    if(node -> left)
     {
         if((node -> left) -> type == OP)
         {
-            switch(((node -> left) -> val).op)
-            {
-            case MUL:
-                if (Reduce_MUL_Left(node)) return 1;
-            case ADD:
-                if (Reduce_ADD_Left(node)) return 1;
-            case POW:
-                if (Reduce_POW_Left(node)) return 1;
-            default:
-                break;
-            }
+            if(Join_Left_Op(node)) return 1;
         }
     }
-    if(node -> right != NULL)
+    if(node -> right)
     {
         if((node -> right) -> type == OP)
         {
-            switch(((node -> right) -> val).op)
+            if(Join_Right_Op(node)) return 1;
+        }
+    }
+    */
+    if(node)
+    {
+        if(L && R)
+        {
+            if((L) -> type == NUM && (R) -> type == NUM)
             {
-            case MUL:
-                if (Reduce_MUL_Right(node)) return 1;
-            case ADD:
-                if (Reduce_ADD_Right(node)) return 1;
-            case POW:
-                if (Reduce_POW_Right(node)) return 1;
-            default:
-                break;
+                printf("\n" green(Red_const) "\n");
+                double new_val = Calculate_val(node);
+                Copy_Node(CONST(new_val), node);
+                return 1;
             }
         }
 
-        if((node -> right) -> type == NUM)
+        if(node -> type == OP)
         {
-            Join_Const(node);
-            return 1;
+            switch((node -> val).op)
+            {
+            case MUL:
+                fprintf(stderr, "\nMUL");
+                if (Reduce_MUL(node)) return 1;
+                break;
+            case ADD:
+                printf("\nADD");
+                if (Reduce_ADD(node)) return 1;
+                break;
+            case POW:
+                printf("\nPOW");
+                if (Reduce_POW(node)) return 1;
+                break;
+            default:
+                return 0;
+                break;
+            }
         }
     }
 
@@ -595,13 +783,18 @@ void Reduce_Tree(struct Tree* tree, struct Node* node)
     tree -> version += Reduce_Const(node);
     Reduce_Tree(tree, node -> right);
 
+    printf("\nversion = %d\n", tree -> version);
+    Tree_Dump(tree);
+    Draw_Graph(tree);
+    //system("make draw");
+    //getchar();
+
     if(tree -> version != 0)
     {
         tree -> version = 0;
         Reduce_Tree(tree, tree -> root);
     }
-
-    return;
+    //return;
 }
 
 

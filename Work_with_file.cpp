@@ -2,86 +2,7 @@
 #include "lib.h"
 #include "work_with_file.h"
 
-enum OPERATION Convert_op_to_enum(struct Node* node, char* str_op)
-{
-    //--------------------------------------------------------
-    #define OP(name, str, num_op, def, len, op_prior, ...)   \
-        if(strcasecmp(str, str_op) == 0)                \
-        {                                               \
-            node -> priority = op_prior;                \
-            return name;                                \
-        }
-    //--------------------------------------------------------
-    #include "operators.h"
-    else
-    {
-        printf("\n" red(ERROR)" uncorrect operation!!!\n");
-        exit(1);
-    }
-/*
-    if(strcasecmp("+", str_op) == 0)
-    {
-        node -> priority = 2;
-        return ADD;
-    }
-    if(strcasecmp("*", str_op) == 0)
-    {
-        node -> priority = 1;
-        return MUL;
-    }
-    if(strcasecmp("-", str_op) == 0)
-    {
-        node -> priority = 2;
-        return SUB;
-    }
-    if(strcasecmp("/", str_op) == 0)
-    {
-        node -> priority = 1;
-        return DIV;
-    }
-    if(strcasecmp("√", str_op) == 0)
-    {
-        node -> priority = -2;
-        return SQRT;
-    }
-    if(strcasecmp("sin", str_op) == 0)
-    {
-        node -> priority = 0;
-        return SIN;
-    }
-    if(strcasecmp("cos", str_op) == 0)
-    {
-        node -> priority = 0;
-        return COS;
-    }
-    if(strcasecmp("^", str_op) == 0)
-    {
-        node -> priority = -2;
-        return POW;
-    }
-    if(strcasecmp("tg", str_op) == 0)
-    {
-        node -> priority = 0;
-        return TAN;
-    }
-    if(strcasecmp("COT", str_op) == 0)
-    {
-        node -> priority = 0;
-        return COT;
-    }
-    if(strcasecmp("log", str_op) == 0)
-    {
-        node -> priority = 1;
-        return LOG;
-    }
-    else
-    {
-        printf("\n\033[31mERROR\033[0m uncorrect operation!!!\n");
-        exit(1);
-    }
-*/
-#undef OP
-}
+
 
 void Beautiful_Dump()
 {
@@ -96,7 +17,8 @@ void Beautiful_Dump()
 }
 
 
-
+//                                                 Print to dot file
+//------------------------------------------------------------------------------------------------------------------------------
 void Print_Node_depends_of_type(struct Node* node, FILE* file_dot)
 {
     if(node -> type == OP)
@@ -152,7 +74,9 @@ void Draw_Graph(struct Tree* tree)
 
     assert(file_dot);
 
-    fprintf(file_dot, "digraph G\n{\n\trankdir = \"TB\";\n\n\tnode[color = \"red\", style=filled, fontsize = 14];\n\tedge[color = \"black\", fontcolor = \"blue\", fontsize = 12, weight = 0];\n\n\t");
+    fprintf(file_dot, "digraph G\n{\n\trankdir = \"TB\";\n\n\t"
+                                    "node[color = \"red\", style=\"filled, rounded\", fontsize = 14];\n\t"
+                                    "edge[color = \"black\", fontcolor = \"blue\", fontsize = 12, weight = 0];\n\n\t");
 
     fprintf(file_dot, "Tree [shape = record, style = \"rounded\", label = \"root: %p | size: %d\"];\n\t", tree -> root, tree -> size);
 
@@ -164,77 +88,30 @@ void Draw_Graph(struct Tree* tree)
 
     fclose(file_dot);
 }
+//------------------------------------------------------------------------------------------------------------------------------
+//                                                      END
 
 
 
 
-enum TYPE Check_Type(char* str_val)
-{
-    if(strstr(operations, str_val) != NULL)
-    {
-        return OP;
-    }
-    else
-    {
-        return VAR;
-    }
 
-}
-
-
-
-
+//                                                Print to consol
+//------------------------------------------------------------------------------------------------------------------------------
 void Print_Operation(enum OPERATION op, FILE* file)
 {
     switch(op)
     {
+    //---------------------------------------------
     #define OP(name, str_op, ...)      \
     case name:                         \
         fprintf(file, str_op" ");      \
         break;
+    //---------------------------------------------
 
     #include "operators.h"
+
+    #undef OP
     }
-    /*
-    switch(op)
-    {
-    case ADD:
-        fprintf(file, "+ ");
-        break;
-    case SUB:
-        fprintf(file, "- ");
-        break;
-    case MUL:
-        fprintf(file, "* ");
-        break;
-    case DIV:
-        fprintf(file, "/ ");
-        break;
-    case SQRT:
-        fprintf(file, "√ ");
-        break;
-    case COS:
-        fprintf(file, "cos ");
-        break;
-    case SIN:
-        fprintf(file, "sin ");
-        break;
-    case TAN:
-        fprintf(file, "tg ");
-        break;
-    case COT:
-        fprintf(file, "COT ");
-        break;
-    case POW:
-        fprintf(file, "^ ");
-        break;
-    case LOG:
-        fprintf(file, "log ");
-        break;
-    default:
-        printf("\n\033[31mNO_OPERATION\033[0m in Print_in_Operation");
-    }
-    */
 }
 
 void Print_Node(struct Node* node, FILE* file)
@@ -251,7 +128,7 @@ void Print_Node(struct Node* node, FILE* file)
         fprintf(file, "%s ", (node -> val).var);              //var
         break;
     default:
-        printf("\033[31mERROR\033[0m uncorrect type in \"\033[32mPrint_Node\033[0m\"!!!");
+        printf(red(ERROR)" uncorrect type in \"" green(Print_Node)"\"!!!");
         exit(1);
     }
 }
@@ -283,10 +160,15 @@ void Print_In_Order(struct Node* node, FILE* file)
     }
 
 }
+//------------------------------------------------------------------------------------------------------------------------------
+//                                                      END
 
 
 
 
+
+//                                                    Print to TEX
+//------------------------------------------------------------------------------------------------------------------------------
 int Need_figur_bracket(enum OPERATION op)
 {
     switch(op)
@@ -335,7 +217,7 @@ void Print_Node_to_TEX(struct Node* node, FILE* file_tex)
         fprintf(file_tex, "%s", (node -> val).var);
         break;
     default:
-        printf(red(ERROR)" uncorrect type in \"\033[32mPrint_Node_to_TEX\033[0m\"!!!");
+        printf(red(ERROR)" uncorrect type in \"" green(Print_Node_to_TEX)"\"!!!");
         exit(1);
     }
 }
@@ -398,14 +280,15 @@ void Print_to_TEX(struct Node* node, FILE* file_tex)
         {
             fprintf(file_tex, "\\log_{");
         }
-    }
-    if(node -> left != NULL)
-    {
-        if((node -> left) -> priority > node -> priority)
+        else if(node -> left != NULL)
         {
+            if((node -> left) -> priority < node -> priority)
+            {
             fprintf(file_tex, "( ");
+            }
         }
     }
+
 
     Print_to_TEX(node -> left, file_tex);
     Print_Node_to_TEX(node, file_tex);
@@ -436,29 +319,24 @@ void Print_to_TEX(struct Node* node, FILE* file_tex)
         {
             fprintf(file_tex, "} ");
         }
-    }
-    if(node -> right != NULL)
-    {
-        if((node -> right) -> priority > node -> priority)
+        if(node -> right != NULL)
         {
-            fprintf(file_tex, ") ");
+            if((node -> right) -> priority < node -> priority)
+            {
+                fprintf(file_tex, ") ");
+            }
         }
     }
 }
+//------------------------------------------------------------------------------------------------------------------------------
+//                                                      END
 
 
-/*
-void Print_to_TEX(struct Node* node)
-{
-    FILE* file_tex = fopen("Expression.tex", "w");
-
-    Print_In_Order(node, file_tex);
-
-    fclose(file_tex);
-}
-*/
 
 
+
+//                                         Read file and create tree (OLD VERSION)
+//------------------------------------------------------------------------------------------------------------------------------
 void Tree_Dump(struct Tree* tree)
 {
     assert(tree);
@@ -508,9 +386,27 @@ struct Node* Read_and_Insert_Node(struct Tree* tree, struct Node* now_node, char
 
     return now_node;
 }
+//------------------------------------------------------------------------------------------------------------------------------
+//                                                      END
 
 
 
+
+
+//                                               Work with variable
+//------------------------------------------------------------------------------------------------------------------------------
+enum TYPE Check_Type(char* str_val)
+{
+    if(strstr(operations, str_val) != NULL)
+    {
+        return OP;
+    }
+    else
+    {
+        return VAR;
+    }
+
+}
 
 int Check_var_in_var_buf(struct Tree* tree, char* name)
 {
@@ -547,16 +443,14 @@ void Set_Node_Value(struct Tree* tree, struct Node* node, char* buf, int i)
 
     if(sscanf(&buf[i], "%lf", &new_val) == 1)
     {
-        //printf("\nnew_val = %f\n", new_val);
         node -> type = NUM;
-        node -> priority = -1;
+        node -> priority = NUM_PRIORITY;
         (node -> val).num = new_val;
 
     }
     else
     {
         sscanf(&buf[i], "%s", str);
-        //printf("\nstr_op = %s\n", str);
 
         if(Check_Type(str) == OP)
         {
@@ -567,146 +461,41 @@ void Set_Node_Value(struct Tree* tree, struct Node* node, char* buf, int i)
         else
         {
             node -> type = VAR;
-            node -> priority = -1;
+            node -> priority = NUM_PRIORITY;
             (node -> val).var = Add_Variable(tree, tree -> var_buf, str);
         }
     }
 }
+//------------------------------------------------------------------------------------------------------------------------------
+//                                                      END
 
 
 
-void Convert_In_Order_Tree(struct Tree* tree)
+
+
+//                                                 Read tree file
+//------------------------------------------------------------------------------------------------------------------------------
+enum OPERATION Convert_op_to_enum(struct Node* node, char* str_op)
 {
-    Tree_t value = {};
-    int open_brackets = 0;
-    int close_brackets = 0;
-    struct Node* temp = NULL;
-    int i = 0;
-    int indicator = INSERT_LEFT;
+    //--------------------------------------------------------
+    #define OP(name, str, num_op, def, len, op_prior, ...)   \
+        if(strcasecmp(str, str_op) == 0)                     \
+        {                                                    \
+            node -> priority = op_prior;                     \
+            return name;                                     \
+        }
+    //--------------------------------------------------------
 
-    FILE* file = fopen("Tree.txt", "r");
+    #include "operators.h"
 
-    char* buf = Read_file(tree, file);
-
-    struct Node* now_node = tree -> root;
-
-    while (true)
+    else
     {
-        if(buf[i] == '(')
-        {
-            open_brackets++;
-            i++;
-
-            temp = now_node;
-
-            now_node = Insert_to_Pointer(tree, &value, now_node, indicator, NUM);
-            now_node -> prev = temp;
-
-            indicator = INSERT_LEFT;
-        }
-        else if(buf[i] == ')')
-        {
-
-            while(buf[i] == ')')
-            {
-                i = i + 2;
-                close_brackets++;
-                now_node = now_node -> prev;
-            }
-
-            if(close_brackets == open_brackets)                      //polnoe govno no i ebal etu recursiu becouse 10 hours and i do not know how i can write it pisdets 8 am on clock...
-            {
-                break;
-            }
-
-            i = i - 2;
-
-            if (indicator == INSERT_LEFT)
-            {
-                Set_Node_Value(tree, now_node, buf, i + 1);
-            }
-
-            indicator = INSERT_RIGHT;
-        }
-        else if(buf[i] == '_')
-        {
-            if (indicator == INSERT_LEFT)
-            {
-                Set_Node_Value(tree, now_node, buf, i + 1);
-            }
-
-            indicator = indicator * INSERT_RIGHT;
-            i++;
-        }
-
-        if(close_brackets == open_brackets)
-        {
-            break;
-        }
-        i++;
-
-        #ifdef DUMP_ON_TREE
-            Tree_Dump(tree);
-        #endif
+        printf("\n" red(ERROR)" uncorrect operation!!!\n");
+        exit(1);
     }
-    fclose(file);
+
+    #undef OP
 }
-
-void Convert_Pre_Order_Tree(struct Tree* tree)
-{
-    int open_brackets = 0;
-    int close_brackets = 0;
-    struct Node* temp = NULL;
-    int i = 0;
-    int indicator = INSERT_LEFT;
-
-    FILE* file = fopen("Tree.txt", "r");
-
-    char* buf = Read_file(tree, file);
-
-    struct Node* now_node = tree -> root;
-
-    while (true)
-    {
-        if(buf[i] == '(')
-        {
-            open_brackets++;
-            temp = now_node;
-            i++;
-
-            now_node = Read_and_Insert_Node(tree, now_node, buf, indicator, i);
-
-            indicator = INSERT_LEFT;
-            now_node -> prev = temp;
-
-        }
-        else if(buf[i] == ')')
-        {
-            close_brackets++;
-            now_node = now_node -> prev;
-            indicator = INSERT_RIGHT;
-        }
-        else if(buf[i] == '_')
-        {
-            indicator = indicator * INSERT_RIGHT;
-            i++;
-        }
-
-        if(close_brackets == open_brackets)
-        {
-            break;
-        }
-        i++;
-
-        #ifdef DUMP_ON_TREE
-            Tree_Dump(tree);
-        #endif
-    }
-    fclose(file);
-}
-
-
-
 
 void Skip_Space(char* buf, int* i)
 {
@@ -777,3 +566,5 @@ void Read_tree_file(struct Tree* tree)
 
     Read_Next_Node(tree, tree -> root, value, buf, &i);
 }
+//------------------------------------------------------------------------------------------------------------------------------
+//                                                      END

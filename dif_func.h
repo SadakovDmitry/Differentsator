@@ -9,8 +9,9 @@
 #define R               node->right
 #define CONST(val)      Create_Node(NUM, {.num = val}, NULL, NULL, node)
 #define D(node)         Der(node)
-#define C(node)         Copy_Node(node)
+#define C(node)         Copy_Subtree(node)
 #define E               Create_Node(VAR,{.var = "e"}, NULL, NULL, node)
+
 #define ADD(left,right) Create_Node(OP, {.op = ADD},  left, right, node)
 #define SUB(left,right) Create_Node(OP, {.op = SUB},  left, right, node)
 #define MUL(left,right) Create_Node(OP, {.op = MUL},  left, right, node)
@@ -26,6 +27,7 @@
 const int SIZE_STR = 100;
 const int INSERT_LEFT = 1;
 const int INSERT_RIGHT = -1;
+const int NUM_PRIORITY = 3;
 
 enum TYPE
 {
