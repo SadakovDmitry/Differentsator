@@ -25,5 +25,7 @@ void Skip_Value(char* buf, int* i);
 void Print_Title_TEX(FILE* file_tex);
 void Print_Tex(struct Node* node, FILE* file_tex, struct Remove* rems);
 void Print_Node_to_Tex(struct Node* node, FILE* file_tex);
+int Set_Node_Value(struct Tree* tree, struct Node* node, char* buf, int i);
+enum TYPE Check_Type(char* str_val);
 
 #endif

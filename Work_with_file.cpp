@@ -1,6 +1,7 @@
 #include "dif_func.h"
 #include "lib.h"
 #include "work_with_file.h"
+#include "lib_pars.h"
 
 
 
@@ -372,7 +373,7 @@ void Print_Tex(struct Node* node, FILE* file_tex, struct Remove* rems)
         case name:                                                                      \
             if(node -> left != NULL)                                                    \
             {                                                                           \
-                if(((node -> left) -> val).op == ADD && (node -> val).op == MUL)        \
+                if((node -> left) -> priority == 0 && (node -> priority) == 1)          \
                 {                                                                       \
                     fprintf(file_tex, "(");                                             \
                 }                                                                       \
@@ -384,7 +385,7 @@ void Print_Tex(struct Node* node, FILE* file_tex, struct Remove* rems)
             fprintf(file_tex, end);                                                     \
             if(node -> right != NULL)                                                   \
             {                                                                           \
-                if(((node -> right) -> val).op == ADD && (node -> val).op == MUL)       \
+                if((node -> right) -> priority == 0 && (node -> priority) == 1)         \
                 {                                                                       \
                     fprintf(file_tex, ")");                                             \
                 }                                                                       \
@@ -392,24 +393,16 @@ void Print_Tex(struct Node* node, FILE* file_tex, struct Remove* rems)
             break;
     //--------------------------------------------------------------------------------------
 
+    //Join_Long_Tree(node, rems);
+
     if(node -> type == OP)
     {
+        //fprintf(stderr, green(size_node) " = %d\n", node -> size);
 
-        if(Join_Long_Tree(node))
-        {
-            //printf("\nhuy\n");
-            //fprintf(file_tex, "\n A \n");
-            //rems[0].name = "A";
-            //rems[0].rem = node;
-            //Print_Tex(node, file_tex, rems);
-            //return;
-        }
         switch((node -> val).op)
         {
             #include "operators.h"
         }
-
-        //fprintf(stderr, green(size_node) " = %d\n", node -> size);
     }
     if(node -> type == VAR || node -> type == NUM)
     {
@@ -446,13 +439,14 @@ char* Read_file(struct Tree* tree, FILE* file)
 {
     struct stat st = {};
 
-    stat("Tree.txt", &st);
+    fstat(file->_file, &st);
     tree -> len_tree_buf = st.st_size - 1;
+    printf("\nL%lld\n", st.st_size);
 
     char* buf = (char*) calloc(st.st_size + 1, sizeof(char));
     fread(buf, sizeof (char), st.st_size, file);
 
-    printf("\nbuf = %s\n", buf);
+    printf("\nbufFFF = %s\n", buf);
 
 
     return buf;
@@ -530,7 +524,7 @@ char* Add_Variable(struct Tree* tree, struct Variable* var_buf, char* name)
     return spot_for_cpy;
 }
 
-void Set_Node_Value(struct Tree* tree, struct Node* node, char* buf, int i)
+int Set_Node_Value(struct Tree* tree, struct Node* node, char* buf, int i)
 {
     char str[SIZE_STR] = "";
     double new_val = 0;
@@ -541,6 +535,7 @@ void Set_Node_Value(struct Tree* tree, struct Node* node, char* buf, int i)
         node -> priority = NUM_PRIORITY;
         (node -> val).num = new_val;
 
+        return i;
     }
     else
     {
@@ -558,6 +553,8 @@ void Set_Node_Value(struct Tree* tree, struct Node* node, char* buf, int i)
             node -> priority = NUM_PRIORITY;
             (node -> val).var = Add_Variable(tree, tree -> var_buf, str);
         }
+
+        return i + strlen(str);
     }
 }
 //------------------------------------------------------------------------------------------------------------------------------
@@ -649,6 +646,7 @@ void Insert_Node_from_file(struct Tree* tree, struct Node* node, Tree_t value, c
 
 void Read_tree_file(struct Tree* tree)
 {
+    /*
     Tree_t value = {};
     int i = 0;
 
@@ -657,8 +655,21 @@ void Read_tree_file(struct Tree* tree)
     char* buf = Read_file(tree, file);
 
     fclose(file);
+    */
+    //Read_Next_Node(tree, tree -> root, value, buf, &i);
 
-    Read_Next_Node(tree, tree -> root, value, buf, &i);
+    struct Parse_inf parse_inf = {};
+
+    FILE* file = fopen("Tree.txt", "r");
+    parse_inf.str = Read_file(tree, file);
+    parse_inf.pos = 0;
+    struct Node* node = Sintactic_Pars(parse_inf.str);
+
+    tree -> root = Get_Start(&parse_inf);
+    Draw_Graph(tree);
+
+    fclose(file);
+
 }
 //------------------------------------------------------------------------------------------------------------------------------
 //                                                      END

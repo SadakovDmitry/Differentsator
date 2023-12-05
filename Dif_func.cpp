@@ -1,26 +1,30 @@
 #include "lib.h"
 #include "dif_func.h"
 #include "work_with_file.h"
+#include "const_massivs.h"
 
 
 //                                                    Delete
 //------------------------------------------------------------------------------------------------------------------------------
-int Dtor_SubTree(struct Node* node)
+int Delete_SubTree(struct Node* node)
 {
-    assert(node);
+    //assert(node);
+    if(!node) return 0;
 
     if(!L)
     {
-        Dtor_SubTree(L);
-        node = NULL;
+        Delete_SubTree(L);
+        L = NULL;
+        free(node -> left);
     }
     if(!R)
     {
-        Dtor_SubTree(R);
-        node = NULL;
+        Delete_SubTree(R);
+        R = NULL;
+        free(node -> right);
     }
 
-    free(node);
+    //free(node);
     node = NULL;
 
     return 1;
@@ -250,39 +254,59 @@ struct Node* Copy_Subtree(struct Node* node)
     return new_node;
 }
 
-struct Node* Der(struct Node* node)
+void Print_One_Diff(struct Node* node, struct Node* last_node, struct Remove* rems, FILE* file_tex)
+{
+    fprintf(file_tex, "%s", PHRASE_TEX[rand() % SIZE_PHRASE_BANK]);
+    fprintf(file_tex, "$$( ");
+    Print_Tex(last_node, file_tex, rems);
+    fprintf(file_tex, ")' =  ");
+    Print_Tex(node, file_tex, rems);
+    fprintf(file_tex, " $$\\newline\n");
+}
+
+struct Node* Der(struct Node* node, struct Remove* rems, FILE* file_tex)
 {
     assert(node);
 
-    //FILE* file_tex = fopen("Expression.tex", "a");
-    //Print_Tex(node, file_tex);
-    //fprintf(file_tex,">\n");
-    //fclose(file_tex);
+    struct Node* last_node = node;
 
     switch (node -> type)
     {
     case NUM:
-        return CONST(0);
+        node =  CONST(0);
+        break;
     case VAR:
-        if (strcmp((node -> val).var, "e") == 0) return E;
-        else return CONST(1);
+        if (strcmp((node -> val).var, "e") == 0)
+        {
+            node = E;
+        }
+        else
+        {
+            node = CONST(1);
+        }
+        break;
     default:
 
     //--------------------------------------------------------
-    #define OP(name, str_symbol, enum, dif, ...) \
-        case name:                               \
-            return dif;                          \
+    #define OP(name, str_symbol, enum, diff, ...) \
+        case name:                                \
+            node = diff;                          \
             break;
     //--------------------------------------------------------
 
     switch((node -> val).op)
     {
-    #include "operators.h"
+        #include "operators.h"
+        default:
+            fprintf(stderr, red(ERROR)" no %d operation in \"" green(Der)"\"", (node -> val).op);
+            exit(1);
     }
 
+    Print_One_Diff(node, last_node, rems, file_tex);
+
     #undef OP
-    return node;
     }
+    return node;
 }
 //------------------------------------------------------------------------------------------------------------------------------
 //                                                      END
@@ -319,7 +343,7 @@ struct Node* Copy_Node(struct Node* sourse_node, struct Node* dest_node)
     //(sourse_node -> left) -> prev = dest_node;
     //(sourse_node -> right) -> prev = dest_node;
 
-    return sourse_node;
+    return dest_node;
 }
 
 double Calculate_val(struct Node* node)
@@ -354,6 +378,21 @@ double Calculate_val(struct Node* node)
     #undef OP
 }
 
+int Is_Zero(struct Node* node)
+{
+    if(node -> type == NUM && (node -> val).num == 0) return 1;
+
+    return 0;
+}
+
+int Is_One(struct Node* node)
+{
+    if(node -> type == NUM && (node -> val).num == 1) return 1;
+
+    return 0;
+}
+
+
 int Reduce_MUL(struct Node* node)
 {
     assert(node);
@@ -361,28 +400,29 @@ int Reduce_MUL(struct Node* node)
     assert(node -> left);
     assert(&((node -> right) -> val));
 
-    if((R) -> type == NUM && ((R) -> val).num == 1)
+    if(Is_One(R))
     {
         Node* tmp_node = L;
-        //Delete_Node(&(R));
+        Delete_SubTree(R);
         Copy_Node(L, node);
-        //Delete_Node(&(tmp_node));
+        Delete_SubTree(tmp_node);
+        tmp_node = NULL;
 
         return 1;
     }
-    if((L) -> type == NUM && ((L) -> val).num == 1)
+    if(Is_One(L))
     {
         Node* tmp_node = R;
-        Delete_Node(&(L));
+        Delete_SubTree(L);
         Copy_Node(R, node);
-        Delete_Node(&(tmp_node));
+        Delete_SubTree(tmp_node);
+        tmp_node = NULL;
 
         return 1;
     }
-    if((((L) -> type == NUM && (L) -> val).num == 0) || ((R) -> type == NUM &&((R) -> val).num == 0))
+    if(Is_Zero(L) || Is_Zero(R))
     {
-
-        //Delete_Node(&(R));
+        Delete_SubTree(R);
         Copy_Node(CONST(0), node);
 
         return 1;
@@ -394,21 +434,21 @@ int Reduce_MUL(struct Node* node)
 int Reduce_ADD(struct Node* node)
 {
 
-    if((L) -> type == NUM && ((L) -> val).num == 0)
+    if(Is_Zero(L))
     {
         Node* tmp_node = R;
-        //Delete_Node(&(L));
+        Delete_SubTree(L);
         Copy_Node(R, node);
-        //Delete_Node(&(tmp_node));
+        Delete_Node(&(tmp_node));
 
         return 1;
     }
-    if((R) -> type == NUM && ((R) -> val).num == 0)
+    if(Is_Zero(R))
     {
         Node* tmp_node = L;
-        Delete_Node(&(R));
+        Delete_SubTree(R);
         Copy_Node(L, node);
-        //Delete_Node(&(tmp_node));
+        Delete_Node(&(tmp_node));
 
         return 1;
     }
@@ -418,37 +458,40 @@ int Reduce_ADD(struct Node* node)
 
 int Reduce_POW(struct Node* node)
 {
-    if((L) -> type == NUM && ((L) -> val).num == 1)
+    if(Is_One(L))
     {
         Node* tmp_node = L;
-        Delete_Node(&(R));
+        Delete_SubTree(R);
         Copy_Node(L, node);
-        Delete_Node(&(tmp_node));
+        Delete_SubTree(tmp_node);
+        tmp_node = NULL;
 
         return 1;
     }
-    if((R) -> type == NUM && ((R) -> val).num == 1)
+    if(Is_One(R))
     {
         Node* tmp_node = L;
-        Delete_Node(&(R));
+        Delete_SubTree(R);
         Copy_Node(L, node);
-        Delete_Node(&(tmp_node));
+        Delete_SubTree(tmp_node);
+        tmp_node = NULL;
 
         return 1;
     }
-    if((L) -> type == NUM && ((L) -> val).num == 0)
+    if(Is_Zero(L))
     {
         Node* tmp_node = L;
-        Delete_Node(&(R));
+        Delete_SubTree(R);
         Copy_Node(L, node);
-        Delete_Node(&(tmp_node));
+        Delete_SubTree(tmp_node);
+        tmp_node = NULL;
 
         return 1;
     }
-    if((R) -> type == NUM && ((R) -> val).num == 0)
+    if(Is_Zero(R))
     {
-        Delete_Node(&(R));
-        Delete_Node(&(L));
+        Delete_SubTree(R);
+        Delete_SubTree(L);
         Copy_Node(CONST(1), node);
 
         return 1;
@@ -528,13 +571,17 @@ void Dif_n(struct Tree* tree, FILE* file_tex, struct Remove* rems)
 
     for(int i = 1; i <= n; i++)
     {
-        tree -> root = Der(tree -> root);
+        tree -> root = Der(tree -> root, rems, file_tex);
         Reduce_Tree(tree, tree -> root);
-
-        fprintf(file_tex, "$$ f(x)^{(%d)} = ", i);
-        Print_Tex(tree -> root, file_tex, rems);
-        fprintf(file_tex, " $$\\newline\n");
     }
+
+    Calculate_Size(tree -> root);
+    Join_Long_Tree(tree, tree -> root, rems);
+
+    fprintf(file_tex, "$$ f(x)^{(%d)} = ", n);
+    Print_Tex(tree -> root, file_tex, rems);
+    fprintf(file_tex, " $$\\newline\n");
+    Print_Replaces(rems, file_tex);
 
 }
 
@@ -560,26 +607,58 @@ int Calculate_Size(struct Node* node)
         node -> size = 1;
         return node -> size;
     }
+
+    return node -> size;
 }
 
-int Join_Long_Tree(struct Node* node)
+
+
+int Join_Long_Tree(struct Tree* tree, struct Node* node, struct Remove* rems)
 {
     if(node == NULL) return 0;
 
-    //Join_Long_Tree(node -> left);
+    Join_Long_Tree(tree, node -> left, rems);
+    Join_Long_Tree(tree, node -> right, rems);
+
+    if(rems -> num_rems >= MAX_NUM_REPLASES) return 0;
+
     if(node -> size > MAX_LEN_EXP)
     {
-        if(MAX((node -> left) -> size, (node -> right) -> size) == (node -> left) -> size)
+        if((L) -> size > (R) -> size)
         {
-            struct Node* A = node -> left;
+            fprintf(stderr, green(size_node) " = %d\n", node -> size);
+
+            rems[rems -> num_rems].name = replaces[rems -> num_rems];
+            rems[rems -> num_rems].rem = Copy_Node(L , CONST(0));
+            Copy_Node(VAR(replaces[rems -> num_rems]), L);
+            rems -> num_rems += 1;
+
+            Calculate_Size(tree -> root);
         }
         else
         {
-            struct Node* A = node -> right;
+            fprintf(stderr, green(size_node) " = %d\n", node -> size);
+
+            rems[rems -> num_rems].name = replaces[rems -> num_rems];
+            rems[rems -> num_rems].rem = Copy_Node(R , CONST(0));
+            Copy_Node(VAR(replaces[rems -> num_rems]), R);
+            rems -> num_rems += 1;
+
+            Calculate_Size(tree -> root);
         }
-        return 1;
+
+        //return 1;
     }
-    //Join_Long_Tree(node -> right);
 
     return 0;
+}
+
+void Print_Replaces(struct Remove* rems, FILE* file_tex)
+{
+    for(int i = 0; i < rems -> num_rems; i++)
+    {
+        fprintf(file_tex, "$$ %s = ", rems[i].name);
+        Print_Tex(rems[i].rem, file_tex, rems);
+        fprintf(file_tex, " $$\\newline\n");
+    }
 }
