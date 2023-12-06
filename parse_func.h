@@ -9,7 +9,7 @@
 
 struct Parse_inf
 {
-    char* str;
+    struct Node* str_lex;
     int pos;
 };
 
@@ -24,7 +24,9 @@ struct Node* Get_PL(struct Parse_inf* inf);
 struct Node* Get_U(struct Parse_inf* inf);
 
 struct Node* Sintactic_Pars(char* buf);
-int Set_Lex_Val(struct Node* node, char* buf, int pos_buf);
+int Set_Lex_Val(struct Node* node, char* buf, int pos_buf, int* node_buf_pos);
 int Det_Lex_Val(struct Node* node, char* buf, int pos_buf);
+void Print_Lex_Str(struct Node* node);
+void Print_Node(struct Node* node);
 
 #endif
