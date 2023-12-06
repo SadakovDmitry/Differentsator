@@ -308,6 +308,32 @@ struct Node* Der(struct Node* node, struct Remove* rems, FILE* file_tex)
     }
     return node;
 }
+
+void Dif_n(struct Tree* tree, FILE* file_tex, struct Remove* rems)
+{
+    int n = 0;
+    printf("Print n: ");
+    scanf("%d", &n);
+
+    fprintf(file_tex, "$$ f(x) = ");
+    Print_Tex(tree -> root, file_tex, rems);
+    fprintf(file_tex, " $$\\newline\n");
+
+    for(int i = 1; i <= n; i++)
+    {
+        tree -> root = Der(tree -> root, rems, file_tex);
+        Reduce_Tree(tree, tree -> root);
+    }
+
+    Calculate_Size(tree -> root);
+    Join_Long_Tree(tree, tree -> root, rems);
+
+    fprintf(file_tex, "$$ f(x)^{(%d)} = ", n);
+    Print_Tex(tree -> root, file_tex, rems);
+    fprintf(file_tex, " $$\\newline\n");
+    Print_Replaces(rems, file_tex);
+
+}
 //------------------------------------------------------------------------------------------------------------------------------
 //                                                      END
 
@@ -340,8 +366,6 @@ struct Node* Copy_Node(struct Node* sourse_node, struct Node* dest_node)
     dest_node -> type = sourse_node -> type;
     dest_node -> priority = sourse_node -> priority;
     dest_node -> size = sourse_node -> size;
-    //(sourse_node -> left) -> prev = dest_node;
-    //(sourse_node -> right) -> prev = dest_node;
 
     return dest_node;
 }
@@ -559,32 +583,11 @@ void Reduce_Tree(struct Tree* tree, struct Node* node)
 //                                                      END
 
 
-void Dif_n(struct Tree* tree, FILE* file_tex, struct Remove* rems)
-{
-    int n = 0;
-    printf("Print n: ");
-    scanf("%d", &n);
 
-    fprintf(file_tex, "$$ f(x) = ");
-    Print_Tex(tree -> root, file_tex, rems);
-    fprintf(file_tex, " $$\\newline\n");
 
-    for(int i = 1; i <= n; i++)
-    {
-        tree -> root = Der(tree -> root, rems, file_tex);
-        Reduce_Tree(tree, tree -> root);
-    }
 
-    Calculate_Size(tree -> root);
-    Join_Long_Tree(tree, tree -> root, rems);
-
-    fprintf(file_tex, "$$ f(x)^{(%d)} = ", n);
-    Print_Tex(tree -> root, file_tex, rems);
-    fprintf(file_tex, " $$\\newline\n");
-    Print_Replaces(rems, file_tex);
-
-}
-
+//                                                   Cut_Tree
+//------------------------------------------------------------------------------------------------------------------------------
 int Calculate_Size(struct Node* node)
 {
     //----------------------------------------------------
@@ -611,8 +614,6 @@ int Calculate_Size(struct Node* node)
     return node -> size;
 }
 
-
-
 int Join_Long_Tree(struct Tree* tree, struct Node* node, struct Remove* rems)
 {
     if(node == NULL) return 0;
@@ -626,8 +627,6 @@ int Join_Long_Tree(struct Tree* tree, struct Node* node, struct Remove* rems)
     {
         if((L) -> size > (R) -> size)
         {
-            fprintf(stderr, green(size_node) " = %d\n", node -> size);
-
             rems[rems -> num_rems].name = replaces[rems -> num_rems];
             rems[rems -> num_rems].rem = Copy_Node(L , CONST(0));
             Copy_Node(VAR(replaces[rems -> num_rems]), L);
@@ -637,8 +636,6 @@ int Join_Long_Tree(struct Tree* tree, struct Node* node, struct Remove* rems)
         }
         else
         {
-            fprintf(stderr, green(size_node) " = %d\n", node -> size);
-
             rems[rems -> num_rems].name = replaces[rems -> num_rems];
             rems[rems -> num_rems].rem = Copy_Node(R , CONST(0));
             Copy_Node(VAR(replaces[rems -> num_rems]), R);
@@ -662,3 +659,5 @@ void Print_Replaces(struct Remove* rems, FILE* file_tex)
         fprintf(file_tex, " $$\\newline\n");
     }
 }
+//------------------------------------------------------------------------------------------------------------------------------
+//                                                      END

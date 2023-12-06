@@ -668,7 +668,7 @@ void Read_tree_file(struct Tree* tree)
     //Print_Lex_Str(parse_inf.str_lex);
 
     tree -> root = Get_Start(&parse_inf);
-    Draw_Graph(tree);
+    //Draw_Graph(tree);
 
     fclose(file);
 
