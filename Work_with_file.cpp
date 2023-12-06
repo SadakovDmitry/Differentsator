@@ -441,12 +441,12 @@ char* Read_file(struct Tree* tree, FILE* file)
 
     fstat(file->_file, &st);
     tree -> len_tree_buf = st.st_size - 1;
-    printf("\nL%lld\n", st.st_size);
+    //printf("\nL%lld\n", st.st_size);
 
     char* buf = (char*) calloc(st.st_size + 1, sizeof(char));
     fread(buf, sizeof (char), st.st_size, file);
 
-    printf("\nbufFFF = %s\n", buf);
+    printf("\nBUF = %s\n", buf);
 
 
     return buf;
@@ -581,7 +581,7 @@ enum OPERATION Convert_op_to_enum(struct Node* node, char* str_op)
 
     else
     {
-        printf("\n" red(ERROR)" uncorrect operation!!!\n");
+        printf("\n" red(ERROR)" uncorrect operation (%s) in Convert_op_to_enum!!!\n", str_op);
         exit(1);
     }
 
@@ -661,9 +661,11 @@ void Read_tree_file(struct Tree* tree)
     struct Parse_inf parse_inf = {};
 
     FILE* file = fopen("Tree.txt", "r");
-    parse_inf.str = Read_file(tree, file);
+    //parse_inf.str_lex = Read_file(tree, file);
+    char* buf = Read_file(tree, file);
     parse_inf.pos = 0;
-    struct Node* node = Sintactic_Pars(parse_inf.str);
+    parse_inf.str_lex = Sintactic_Pars(buf);
+    //Print_Lex_Str(parse_inf.str_lex);
 
     tree -> root = Get_Start(&parse_inf);
     Draw_Graph(tree);
