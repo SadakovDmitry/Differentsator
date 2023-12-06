@@ -16,6 +16,7 @@ int main()
 
     Read_tree_file(tree);
     //Draw_Graph(tree);
+    system("make draw");
     /*
     FILE* file_tex = fopen("Expression.tex", "w");
     Print_Title_TEX(file_tex);
@@ -38,7 +39,7 @@ int main()
     fclose(file_tex);
 
     Draw_Graph(tree);
-
-    system("make draw");
     */
+    //system("make draw");
+
 }
