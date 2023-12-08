@@ -72,7 +72,7 @@ struct Tree
     struct Node* root;
     int size;
     int len_tree_buf;
-    struct Variable* var_buf;
+    struct Labels* var_buf;
     int num_var;
     int version;
 };
@@ -84,7 +84,7 @@ union Value
     char* var;
 };
 
-struct Variable
+struct Labels
 {
     char* var;
     double val;

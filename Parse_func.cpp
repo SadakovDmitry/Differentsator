@@ -20,15 +20,15 @@ char* Read_file(FILE* file)
     return buf;
 }
 
-/*
-void syn_assert(struct Parse_inf* inf)
+//
+void syn_assert(struct Parse_inf* inf, char smb)
 {
-    if(true)
+    if(smb == ')')
     {
-        print(inf -> pos < (inf -> str)[inf -> pos]);
+        printf("inf -> pos < (inf -> str_lex)[inf -> pos]");
     }
 }
-*/
+//
 
 struct Node* Get_N(struct Parse_inf* inf)
 {
@@ -202,6 +202,10 @@ struct Node* Get_PL(struct Parse_inf* inf)
     return left;
 }
 
+struct Node* Create_Tree(struct Parse_inf* inf)
+{
+    return Get_Start(inf);
+}
 
 
 

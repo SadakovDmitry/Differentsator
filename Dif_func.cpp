@@ -332,7 +332,6 @@ void Dif_n(struct Tree* tree, FILE* file_tex, struct Remove* rems)
     Print_Tex(tree -> root, file_tex, rems);
     fprintf(file_tex, " $$\\newline\n");
     Print_Replaces(rems, file_tex);
-
 }
 //------------------------------------------------------------------------------------------------------------------------------
 //                                                      END

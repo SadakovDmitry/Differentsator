@@ -10,5 +10,5 @@
   OP(COS , "cos", 6 , MUL(D(R), MUL(CONST(-1), SIN(C(R))))                                            , 2*Rs + 3            , 4   ,   cos(right)      , ""       , "\\cos(", ")")
   OP(TAN , "tg" , 7 , MUL(D(R), DIV(CONST(1), POW(COS(C(R)), CONST(2))))                              , 2*Rs + 3            , 4   ,   tan(right)      , ""       , "\\tg(" , ")")
   OP(COT , "ctg", 8 , MUL(D(R), MUL(CONST(-1), SIN(DIV(CONST(1), POW(SIN(C(R)), CONST(2))))))         , 2*Rs + 3            , 4   ,   1/tan(right)    , ""       , "\\ctg(", ")")
-  OP(POW , "^"  , 9 , MUL(C(node), ADD(MUL(D(R), LOG(E, C(L))), MUL(DIV(Der(L), C(L)), C(R))))        , 8 * Ls + 2 * Rs     , 2   ,   pow(left, right), "("       , ")^{"    , "}")
+  OP(POW , "^"  , 9 , MUL(C(node), ADD(MUL(D(R), LOG(E, C(L))), MUL(DIV(D(L), C(L)), C(R))))          , 8 * Ls + 2 * Rs     , 2   ,   pow(left, right), "("       , ")^{"    , "}")
   OP(LOG , "log", 10, MUL(D(R), DIV(CONST(1), C(R)))                                                  , 2*Rs + 3            , 4   ,   log(right)      , "\\log_{", "}("    , ")")

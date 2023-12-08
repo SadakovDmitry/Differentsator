@@ -373,7 +373,7 @@ void Print_Tex(struct Node* node, FILE* file_tex, struct Remove* rems)
         case name:                                                                      \
             if(node -> left != NULL)                                                    \
             {                                                                           \
-                if((node -> left) -> priority == 0 && (node -> priority) == 1)          \
+                if((node -> left) -> priority == 0 && (node -> val).op == MUL)          \
                 {                                                                       \
                     fprintf(file_tex, "(");                                             \
                 }                                                                       \
@@ -385,7 +385,7 @@ void Print_Tex(struct Node* node, FILE* file_tex, struct Remove* rems)
             fprintf(file_tex, end);                                                     \
             if(node -> right != NULL)                                                   \
             {                                                                           \
-                if((node -> right) -> priority == 0 && (node -> priority) == 1)         \
+                if((node -> right) -> priority == 0 && (node -> val).op == MUL)         \
                 {                                                                       \
                     fprintf(file_tex, ")");                                             \
                 }                                                                       \
@@ -393,8 +393,12 @@ void Print_Tex(struct Node* node, FILE* file_tex, struct Remove* rems)
             break;
     //--------------------------------------------------------------------------------------
 
-    //Join_Long_Tree(node, rems);
-
+    if(node -> type == VAR || node -> type == NUM)
+    {
+        //Print_Tex(node -> left, file_tex, rems);
+        Print_Node_to_Tex(node, file_tex);
+        //Print_Tex(node -> right, file_tex, rems);
+    }
     if(node -> type == OP)
     {
         //fprintf(stderr, green(size_node) " = %d\n", node -> size);
@@ -403,13 +407,6 @@ void Print_Tex(struct Node* node, FILE* file_tex, struct Remove* rems)
         {
             #include "operators.h"
         }
-    }
-    if(node -> type == VAR || node -> type == NUM)
-    {
-        Print_Tex(node -> left, file_tex, rems);
-        Print_Node_to_Tex(node, file_tex);
-        Print_Tex(node -> right, file_tex, rems);
-        return;
     }
 
     #undef OP
@@ -646,29 +643,16 @@ void Insert_Node_from_file(struct Tree* tree, struct Node* node, Tree_t value, c
 
 void Read_tree_file(struct Tree* tree)
 {
-    /*
-    Tree_t value = {};
-    int i = 0;
-
-    FILE* file = fopen("Tree.txt", "r");
-
-    char* buf = Read_file(tree, file);
-
-    fclose(file);
-    */
-    //Read_Next_Node(tree, tree -> root, value, buf, &i);
-
     struct Parse_inf parse_inf = {};
 
     FILE* file = fopen("Tree.txt", "r");
-    //parse_inf.str_lex = Read_file(tree, file);
+
     char* buf = Read_file(tree, file);
     parse_inf.pos = 0;
     parse_inf.str_lex = Sintactic_Pars(buf);
     //Print_Lex_Str(parse_inf.str_lex);
 
-    tree -> root = Get_Start(&parse_inf);
-    //Draw_Graph(tree);
+    tree -> root = Create_Tree(&parse_inf);
 
     fclose(file);
 

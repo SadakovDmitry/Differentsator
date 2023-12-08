@@ -7,7 +7,7 @@
 int main()
 {
     struct Tree* tree = (struct Tree*) calloc(1, sizeof(struct Tree));
-    struct Variable* var_buf = (struct Variable*) calloc(NUM_VAR, sizeof(struct Variable));
+    struct Labels* var_buf = (struct Labels*) calloc(NUM_VAR, sizeof(struct Labels));
     struct Remove* rems = (struct Remove*) calloc(MAX_NUM_REPLASES, sizeof(struct Remove));
     rems -> num_rems = 0;
     tree -> var_buf = var_buf;

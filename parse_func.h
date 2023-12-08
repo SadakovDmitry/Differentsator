@@ -23,6 +23,10 @@ struct Node* Get_PM(struct Parse_inf* inf);
 struct Node* Get_PL(struct Parse_inf* inf);
 struct Node* Get_U(struct Parse_inf* inf);
 
+
+struct Node* Create_Tree(struct Parse_inf* inf);
+
+
 struct Node* Sintactic_Pars(char* buf);
 int Set_Lex_Val(struct Node* node, char* buf, int pos_buf, int* node_buf_pos);
 int Det_Lex_Val(struct Node* node, char* buf, int pos_buf);
