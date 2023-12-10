@@ -96,7 +96,7 @@ int Check_Operation(struct Node* node)
     }
 }
 
-struct Node* Create_Node(enum TYPE type, Tree_t value, struct Node* left_node, struct Node* right_node, struct Node* prev_node)
+struct Node* Create_Node(enum TYPE type, Tree_t value, struct Node* left_node, struct Node* right_node, struct Node* prev_node, struct Tree* tree)
 {
     struct Node* new_node = (struct Node*) calloc(1, sizeof(struct Node));
 
@@ -110,9 +110,15 @@ struct Node* Create_Node(enum TYPE type, Tree_t value, struct Node* left_node, s
     {
         new_node -> priority = Set_Priority(value.op);
     }
-    if(type == NUM || type == VAR)
+    if(type == NUM)
     {
-         new_node -> priority = NUM_PRIORITY;
+        new_node -> priority = NUM_PRIORITY;
+    }
+     if(type == VAR)
+    {
+        new_node -> priority = NUM_PRIORITY;
+        //printf( green(name) " : %s\n", value.name);
+        (new_node -> val).var_id = Add_Variable(tree, tree -> var_buf, value.name);
     }
 
     return new_node;
@@ -120,7 +126,7 @@ struct Node* Create_Node(enum TYPE type, Tree_t value, struct Node* left_node, s
 
 struct Node* Insert_to_Pointer(struct Tree* tree, Tree_t* value, struct Node* now_node, int indicator, enum TYPE type)
 {
-    struct Node* new_node = Create_Node(type, *value, NULL, NULL, now_node);
+    struct Node* new_node = Create_Node(type, *value, NULL, NULL, now_node, tree);
     tree -> size++;
 
     if(!(now_node))
@@ -143,18 +149,23 @@ struct Node* Insert_to_Pointer(struct Tree* tree, Tree_t* value, struct Node* no
     return new_node;
 }
 
-double Find_Var_Val(struct Tree* tree, const char* variable)
+double Find_Var_Val(struct Tree* tree, int ind)
 {
-    for (int i = 0; i < tree -> num_var; i++)
-    {
-        if(strcmp((tree -> var_buf)[i].var, variable) == 0)
-        {
-            return (tree -> var_buf)[i].val;
-        }
-    }
-    printf("\n\033[31mERROR\033[0m no such variable!!! in \"\033[33mFind_Var_Val\033[0m\"\n");
+    //for (int i = 0; i < tree -> num_var; i++)
+    //{
+       // if(strcmp((tree -> var_buf)[i].var, variable) == 0)
+        //{
+            //return (tree -> var_buf)[i].val;
+        //}
+    //}
+    return (tree -> var_buf)[ind].val;
+
+    printf("\n" red(ERROR) " no such variable!!! in \"" green(Find_Var_Val) "\"\n");
+    exit(1);
     return 0;
 }
+
+
 
 double Eval(struct Tree* tree, struct Node* node)
 {
@@ -166,7 +177,7 @@ double Eval(struct Tree* tree, struct Node* node)
     }
     else if(node -> type == VAR)
     {
-        double var_val = Find_Var_Val(tree, (node -> val).var);
+        double var_val = Find_Var_Val(tree, (node -> val).var_id);
         return var_val;
     }
 
@@ -242,29 +253,19 @@ struct Node* Copy_Subtree(struct Node* node)
     }
     else if (node -> type == VAR)
     {
-        (new_node -> val).var = (node -> val).var;
+        (new_node -> val).var_id = (node -> val).var_id;
     }
 
     new_node -> type  = node -> type;
-    new_node -> left = Copy_Subtree(node -> left);
+    new_node -> left  = Copy_Subtree(node -> left);
     new_node -> right = Copy_Subtree(node -> right);
-    new_node -> prev = node -> prev;
+    new_node -> prev  = node -> prev;
     new_node -> priority = node -> priority;
 
     return new_node;
 }
 
-void Print_One_Diff(struct Node* node, struct Node* last_node, struct Remove* rems, FILE* file_tex)
-{
-    fprintf(file_tex, "%s", PHRASE_TEX[rand() % SIZE_PHRASE_BANK]);
-    fprintf(file_tex, "$$( ");
-    Print_Tex(last_node, file_tex, rems);
-    fprintf(file_tex, ")' =  ");
-    Print_Tex(node, file_tex, rems);
-    fprintf(file_tex, " $$\\newline\n");
-}
-
-struct Node* Der(struct Node* node, struct Remove* rems, FILE* file_tex)
+struct Node* Der(struct Tree* tree, struct Node* node, struct Remove* rems, FILE* file_tex)
 {
     assert(node);
 
@@ -276,7 +277,7 @@ struct Node* Der(struct Node* node, struct Remove* rems, FILE* file_tex)
         node =  CONST(0);
         break;
     case VAR:
-        if (strcmp((node -> val).var, "e") == 0)
+        if ((node -> val).var_id == 0)
         {
             node = E;
         }
@@ -302,26 +303,36 @@ struct Node* Der(struct Node* node, struct Remove* rems, FILE* file_tex)
             exit(1);
     }
 
-    Print_One_Diff(node, last_node, rems, file_tex);
+    Print_One_Diff(tree, node, last_node, rems, file_tex);
 
     #undef OP
     }
     return node;
 }
 
-void Dif_n(struct Tree* tree, FILE* file_tex, struct Remove* rems)
+void   Print_One_Diff(struct Tree* tree, struct Node* node, struct Node* last_node, struct Remove* rems, FILE* file_tex)
+{
+    fprintf(file_tex, "%s", PHRASE_TEX[rand() % SIZE_PHRASE_BANK]);
+    fprintf(file_tex, "$$( ");
+    Print_Tex(tree, last_node, file_tex, rems);
+    fprintf(file_tex, ")' =  ");
+    Print_Tex(tree, node, file_tex, rems);
+    fprintf(file_tex, " $$\\newline\n");
+}
+
+void   Dif_n(struct Tree* tree, FILE* file_tex, struct Remove* rems)
 {
     int n = 0;
     printf("Print n: ");
     scanf("%d", &n);
 
     fprintf(file_tex, "$$ f(x) = ");
-    Print_Tex(tree -> root, file_tex, rems);
+    Print_Tex(tree, tree -> root, file_tex, rems);
     fprintf(file_tex, " $$\\newline\n");
 
     for(int i = 1; i <= n; i++)
     {
-        tree -> root = Der(tree -> root, rems, file_tex);
+        tree -> root = Der(tree, tree -> root, rems, file_tex);
         Reduce_Tree(tree, tree -> root);
     }
 
@@ -329,9 +340,9 @@ void Dif_n(struct Tree* tree, FILE* file_tex, struct Remove* rems)
     Join_Long_Tree(tree, tree -> root, rems);
 
     fprintf(file_tex, "$$ f(x)^{(%d)} = ", n);
-    Print_Tex(tree -> root, file_tex, rems);
+    Print_Tex(tree, tree -> root, file_tex, rems);
     fprintf(file_tex, " $$\\newline\n");
-    Print_Replaces(rems, file_tex);
+    Print_Replaces(tree, rems, file_tex);
 }
 //------------------------------------------------------------------------------------------------------------------------------
 //                                                      END
@@ -353,7 +364,7 @@ struct Node* Copy_Node(struct Node* sourse_node, struct Node* dest_node)
         (dest_node -> val).num = (sourse_node -> val).num;
         break;
     case VAR:
-        (dest_node -> val).var = (sourse_node -> val).var;
+        (dest_node -> val).var_id = (sourse_node -> val).var_id;
         break;
     default:
         printf(red(ERROR) "no type node in C\"" green(Copy_Node) "\"");
@@ -416,7 +427,7 @@ int Is_One(struct Node* node)
 }
 
 
-int Reduce_MUL(struct Node* node)
+int Reduce_MUL(struct Tree* tree, struct Node* node)
 {
     assert(node);
     assert(node -> right);
@@ -454,7 +465,7 @@ int Reduce_MUL(struct Node* node)
     return 0;
 }
 
-int Reduce_ADD(struct Node* node)
+int Reduce_ADD(struct Tree* tree, struct Node* node)
 {
 
     if(Is_Zero(L))
@@ -479,7 +490,7 @@ int Reduce_ADD(struct Node* node)
     return 0;
 }
 
-int Reduce_POW(struct Node* node)
+int Reduce_POW(struct Tree* tree, struct Node* node)
 {
     if(Is_One(L))
     {
@@ -524,7 +535,7 @@ int Reduce_POW(struct Node* node)
 }
 
 
-int Reduce_Node(struct Node* node)
+int Reduce_Node(struct Tree* tree, struct Node* node)
 {
     if(node)
     {
@@ -543,13 +554,13 @@ int Reduce_Node(struct Node* node)
             switch((node -> val).op)
             {
             case MUL:
-                if (Reduce_MUL(node)) return 1;
+                if (Reduce_MUL(tree, node)) return 1;
                 break;
             case ADD:
-                if (Reduce_ADD(node)) return 1;
+                if (Reduce_ADD(tree, node)) return 1;
                 break;
             case POW:
-                if (Reduce_POW(node)) return 1;
+                if (Reduce_POW(tree, node)) return 1;
                 break;
             default:
                 break;
@@ -567,7 +578,7 @@ void Reduce_Tree(struct Tree* tree, struct Node* node)
     Check_Operation(node);
     Reduce_Tree(tree, node -> left);
 
-    tree -> version += Reduce_Node(node);
+    tree -> version += Reduce_Node(tree, node);
 
     Check_Operation(node);
     Reduce_Tree(tree, node -> right);
@@ -624,10 +635,11 @@ int Join_Long_Tree(struct Tree* tree, struct Node* node, struct Remove* rems)
 
     if(node -> size > MAX_LEN_EXP)
     {
+
         if((L) -> size > (R) -> size)
         {
             rems[rems -> num_rems].name = replaces[rems -> num_rems];
-            rems[rems -> num_rems].rem = Copy_Node(L , CONST(0));
+            rems[rems -> num_rems].rem  = Copy_Node(L , CONST(0));
             Copy_Node(VAR(replaces[rems -> num_rems]), L);
             rems -> num_rems += 1;
 
@@ -636,25 +648,25 @@ int Join_Long_Tree(struct Tree* tree, struct Node* node, struct Remove* rems)
         else
         {
             rems[rems -> num_rems].name = replaces[rems -> num_rems];
-            rems[rems -> num_rems].rem = Copy_Node(R , CONST(0));
+            rems[rems -> num_rems].rem  = Copy_Node(R , CONST(0));
             Copy_Node(VAR(replaces[rems -> num_rems]), R);
             rems -> num_rems += 1;
 
             Calculate_Size(tree -> root);
         }
 
-        //return 1;
+        return 1;
     }
 
     return 0;
 }
 
-void Print_Replaces(struct Remove* rems, FILE* file_tex)
+void Print_Replaces(struct Tree* tree, struct Remove* rems, FILE* file_tex)
 {
     for(int i = 0; i < rems -> num_rems; i++)
     {
         fprintf(file_tex, "$$ %s = ", rems[i].name);
-        Print_Tex(rems[i].rem, file_tex, rems);
+        Print_Tex(tree, rems[i].rem, file_tex, rems);
         fprintf(file_tex, " $$\\newline\n");
     }
 }

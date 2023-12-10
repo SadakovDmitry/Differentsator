@@ -20,12 +20,12 @@ void Beautiful_Dump()
 
 //                                                 Print to dot file
 //------------------------------------------------------------------------------------------------------------------------------
-void Print_Node_depends_of_type(struct Node* node, FILE* file_dot)
+void Print_Node_depends_of_type(struct Tree* tree, struct Node* node, FILE* file_dot)
 {
     if(node -> type == OP)
     {
         fprintf(file_dot, "%lld [color = \"red\", shape = record, style = \"rounded\", label = \"{", (long long int) node);
-        Print_Node(node, file_dot);
+        Print_Node(tree, node, file_dot);
         fprintf(file_dot, " | OP | pri: %d | size: %d|{ <left> left | <right> right }}\"];\n\t", node -> priority, node -> size);
     }
     else if(node -> type == NUM)
@@ -34,19 +34,19 @@ void Print_Node_depends_of_type(struct Node* node, FILE* file_dot)
     }
     else if(node -> type == VAR)
     {
-        fprintf(file_dot, "%lld [color = \"grey\", shape = record, style = \"rounded\", label = \"{%s | VAR | pri: %d |{ <left> left | <right> right }}\"];\n\t", (long long int) node, (node -> val).var, node -> priority);
+        fprintf(file_dot, "%lld [color = \"grey\", shape = record, style = \"rounded\", label = \"{%s | VAR | pri: %d |{ <left> left | <right> right }}\"];\n\t", (long long int) node, (tree -> var_buf)[(node -> val).var_id].var, node -> priority);
     }
 }
 
-void Print_Node_to_file(struct Node* node, FILE* file_dot)
+void Print_Node_to_file(struct Tree* tree, struct Node* node, FILE* file_dot)
 {
     if(node == NULL) return;
 
-    Print_Node_to_file(node -> left, file_dot);
+    Print_Node_to_file(tree, node -> left, file_dot);
 
-    Print_Node_depends_of_type(node, file_dot);
+    Print_Node_depends_of_type(tree, node, file_dot);
 
-    Print_Node_to_file(node -> right, file_dot);
+    Print_Node_to_file(tree, node -> right, file_dot);
 }
 
 void Arrows_in_Graph(struct Node* node, FILE* file_dot)
@@ -81,7 +81,7 @@ void Draw_Graph(struct Tree* tree)
 
     fprintf(file_dot, "Tree [shape = record, style = \"rounded\", label = \"root: %p | size: %d\"];\n\t", tree -> root, tree -> size);
 
-    Print_Node_to_file(tree -> root, file_dot);
+    Print_Node_to_file(tree, tree -> root, file_dot);
 
     Arrows_in_Graph(tree -> root, file_dot);
 
@@ -115,7 +115,7 @@ void Print_Operation(enum OPERATION op, FILE* file)
     }
 }
 
-void Print_Node(struct Node* node, FILE* file)
+void Print_Node(struct Tree* tree, struct Node* node, FILE* file)
 {
     switch (node -> type)
     {
@@ -126,7 +126,7 @@ void Print_Node(struct Node* node, FILE* file)
         fprintf(file, "%lg ", (node -> val).num);
         break;
     case VAR:
-        fprintf(file, "%s ", (node -> val).var);              //var
+        fprintf(file, "%s ", (tree -> var_buf)[(node -> val).var_id].var);              //var
         break;
     default:
         printf(red(ERROR)" uncorrect type in \"" green(Print_Node)"\"!!!");
@@ -134,7 +134,7 @@ void Print_Node(struct Node* node, FILE* file)
     }
 }
 
-void Print_In_Order(struct Node* node, FILE* file)
+void Print_In_Order(struct Tree* tree, struct Node* node, FILE* file)
 {
     if(node == NULL){
         return;
@@ -148,9 +148,9 @@ void Print_In_Order(struct Node* node, FILE* file)
         }
     }
 
-    Print_In_Order(node -> left, file);
-    Print_Node(node, file);
-    Print_In_Order(node -> right, file);
+    Print_In_Order(tree, node -> left, file);
+    Print_Node(tree, node, file);
+    Print_In_Order(tree, node -> right, file);
 
     if(node -> right != NULL)
     {
@@ -215,7 +215,7 @@ void Print_Node_to_TEX(struct Node* node, FILE* file_tex)
         fprintf(file_tex, "%lg", (node -> val).num);
         break;
     case VAR:
-        fprintf(file_tex, "%s", (node -> val).var);
+        fprintf(file_tex, "\"%d\"", (node -> val).var_id);
         break;
     default:
         printf(red(ERROR)" uncorrect type in \"" green(Print_Node_to_TEX)"\"!!!");
@@ -344,8 +344,11 @@ void Print_to_TEX(struct Node* node, FILE* file_tex)
 
 
 
-void Print_Node_to_Tex(struct Node* node, FILE* file_tex)
+void Print_Node_to_Tex(struct Tree* tree, struct Node* node, FILE* file_tex)
 {
+    assert(node);
+    assert(tree);
+
     switch (node -> type)
     {
     case OP:
@@ -354,15 +357,15 @@ void Print_Node_to_Tex(struct Node* node, FILE* file_tex)
         fprintf(file_tex, "%lg", (node -> val).num);
         break;
     case VAR:
-        fprintf(file_tex, "%s", (node -> val).var);
+        fprintf(file_tex, "%s", (tree -> var_buf)[(node -> val).var_id].var);
         break;
     default:
-        printf(red(ERROR) " uncorrect type in \"" green(Print_Node_to_Tex)"\"!!!");
+        printf(red(ERROR) " uncorrect type in \"" green(Print_Node_to_Tex) "\"!!!");
         exit(1);
     }
 }
 
-void Print_Tex(struct Node* node, FILE* file_tex, struct Remove* rems)
+void Print_Tex(struct Tree* tree, struct Node* node, FILE* file_tex, struct Remove* rems)
 {
     if(node == NULL){
         return;
@@ -379,9 +382,9 @@ void Print_Tex(struct Node* node, FILE* file_tex, struct Remove* rems)
                 }                                                                       \
             }                                                                           \
             fprintf(file_tex, start);                                                   \
-            Print_Tex(node -> left, file_tex, rems);                                    \
+            Print_Tex(tree, node -> left, file_tex, rems);                              \
             fprintf(file_tex, mid);                                                     \
-            Print_Tex(node -> right, file_tex, rems);                                   \
+            Print_Tex(tree, node -> right, file_tex, rems);                             \
             fprintf(file_tex, end);                                                     \
             if(node -> right != NULL)                                                   \
             {                                                                           \
@@ -396,7 +399,7 @@ void Print_Tex(struct Node* node, FILE* file_tex, struct Remove* rems)
     if(node -> type == VAR || node -> type == NUM)
     {
         //Print_Tex(node -> left, file_tex, rems);
-        Print_Node_to_Tex(node, file_tex);
+        Print_Node_to_Tex(tree, node, file_tex);
         //Print_Tex(node -> right, file_tex, rems);
     }
     if(node -> type == OP)
@@ -429,16 +432,17 @@ void Tree_Dump(struct Tree* tree)
     printf("root = %p\nsize = %d\n", tree -> root, tree -> size);
     printf("--------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
 
-    Print_In_Order(tree -> root, stdout);
+    Print_In_Order(tree, tree -> root, stdout);
 }
 
-char* Read_file(struct Tree* tree, FILE* file)
+char* Read_file(struct Tree* tree, FILE* file, int* file_size)
 {
     struct stat st = {};
 
     fstat(file->_file, &st);
     tree -> len_tree_buf = st.st_size - 1;
     //printf("\nL%lld\n", st.st_size);
+    *(file_size) = st.st_size;
 
     char* buf = (char*) calloc(st.st_size + 1, sizeof(char));
     fread(buf, sizeof (char), st.st_size, file);
@@ -499,26 +503,34 @@ int Check_var_in_var_buf(struct Tree* tree, char* name)
     {
         if(strcmp((tree -> var_buf)[i].var, name) == 0)
         {
-            return 1;
+            return i;   //1
         }
     }
-    return 0;
+    return -1;
 }
 
-char* Add_Variable(struct Tree* tree, struct Variable* var_buf, char* name)
+int Add_Variable(struct Tree* tree, struct Labels* var_buf, char* name)
 {
-    int len = strlen(name);
-    char* spot_for_cpy = (char*) calloc(len + 1, sizeof(char));
-    strcpy(spot_for_cpy, name);
+    int var_id = Check_var_in_var_buf(tree, name);
+    //printf("id: %d\n", var_id);
 
-    if(Check_var_in_var_buf(tree, name) == 0)
+    if(var_id == -1)
     {
-        var_buf[tree -> num_var].var = spot_for_cpy;
-        var_buf[tree -> num_var].val = 0;
+        int len = strlen(name);
+        //printf("len = %d\n", len);
+        char* spot_for_cpy = (char*) calloc(len + 1, sizeof(char));
+        strcpy(spot_for_cpy, name);
+
+        var_buf[tree -> num_var].type = VAR;
+        var_buf[tree -> num_var].var  = spot_for_cpy;
+        var_buf[tree -> num_var].val  = 0;
         (tree -> num_var)++;
+
+        return (tree -> num_var) - 1;
+
     }
 
-    return spot_for_cpy;
+    return var_id;
 }
 
 int Set_Node_Value(struct Tree* tree, struct Node* node, char* buf, int i)
@@ -548,7 +560,7 @@ int Set_Node_Value(struct Tree* tree, struct Node* node, char* buf, int i)
         {
             node -> type = VAR;
             node -> priority = NUM_PRIORITY;
-            (node -> val).var = Add_Variable(tree, tree -> var_buf, str);
+            (node -> val).var_id = Add_Variable(tree, tree -> var_buf, str);
         }
 
         return i + strlen(str);
@@ -647,9 +659,11 @@ void Read_tree_file(struct Tree* tree)
 
     FILE* file = fopen("Tree.txt", "r");
 
-    char* buf = Read_file(tree, file);
+    int size_of_file = 0;
+
+    char* buf = Read_file(tree, file, &size_of_file);
     parse_inf.pos = 0;
-    parse_inf.str_lex = Sintactic_Pars(buf);
+    parse_inf.str_lex = Sintactic_Pars(tree, buf, size_of_file);
     //Print_Lex_Str(parse_inf.str_lex);
 
     tree -> root = Create_Tree(&parse_inf);

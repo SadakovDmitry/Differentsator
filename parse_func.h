@@ -14,22 +14,23 @@ struct Parse_inf
 };
 
 
-char* Read_file(FILE* file);
-struct Node* Get_B(struct Parse_inf* inf);
-struct Node* Get_N(struct Parse_inf* inf);
-struct Node* Get_MD(struct Parse_inf* inf);
-struct Node* Get_Start(struct Parse_inf* inf);
-struct Node* Get_PM(struct Parse_inf* inf);
-struct Node* Get_PL(struct Parse_inf* inf);
-struct Node* Get_U(struct Parse_inf* inf);
+char*  Read_file (FILE* file);
+struct Node* Get_Bracket   (struct Parse_inf* inf);
+struct Node* Get_Num       (struct Parse_inf* inf);
+struct Node* Get_Var       (struct Parse_inf* inf);
+struct Node* Get_Mul_Div   (struct Parse_inf* inf);
+struct Node* Get_Start     (struct Parse_inf* inf);
+struct Node* Get_Plus_Minus(struct Parse_inf* inf);
+struct Node* Get_Pow_Log   (struct Parse_inf* inf);
+struct Node* Get_Unary_Op  (struct Parse_inf* inf);
 
 
 struct Node* Create_Tree(struct Parse_inf* inf);
 
 
-struct Node* Sintactic_Pars(char* buf);
-int Set_Lex_Val(struct Node* node, char* buf, int pos_buf, int* node_buf_pos);
-int Det_Lex_Val(struct Node* node, char* buf, int pos_buf);
+struct Node* Sintactic_Pars(struct Tree* tree, char* buf, int size_of_file);
+int Set_Lex_Val(struct Tree* tree, struct Node* node, char* buf, int pos_buf, int* node_buf_pos);
+int Det_Lex_Val(struct Tree* tree, struct Node* node, char* buf, int pos_buf);
 void Print_Lex_Str(struct Node* node);
 void Print_Node(struct Node* node);
 
