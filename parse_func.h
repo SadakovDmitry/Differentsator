@@ -24,7 +24,6 @@ struct Node* Get_Plus_Minus(struct Parse_inf* inf);
 struct Node* Get_Pow_Log   (struct Parse_inf* inf);
 struct Node* Get_Unary_Op  (struct Parse_inf* inf);
 
-
 struct Node* Create_Tree(struct Parse_inf* inf);
 
 

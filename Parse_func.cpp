@@ -225,36 +225,17 @@ struct Node* Create_Tree   (struct Parse_inf* inf)
 }
 
 
-struct Node* Get_Id        (struct Parse_inf* inf)
-{
-    struct Node* left = Get_Var(inf);
-    struct Node* node = &(inf -> str_lex)[inf -> pos];
 
-    enum TYPE node_type = (inf -> str_lex)[inf -> pos].type;
-    Tree_t    node_val  = (inf -> str_lex)[inf -> pos].val;
-
-    if(node_type == OP && node_val.op == EQAL)
-    {
-        (inf -> pos)++;
-
-        node -> right = Get_Plus_Minus(inf);
-        node -> left  = left;
-
-        return node;
-    }
-
-    return left;
-}
 
 
 struct Node* Sintactic_Pars(struct Tree* tree, char* buf, int size_of_file)
 {
-    struct Node* node_buf = (struct Node*) calloc(SIZE_NODE_BUF, sizeof(Node*));
+    struct Node* node_buf = (struct Node*) calloc(SIZE_NODE_BUF, sizeof(Node));
     int node_buf_pos = 0;
     int buf_pos = 0;
 
-    //while(buf[buf_pos] != '\n')
-    for(int i = 0; i < size_of_file; i++)
+    while(buf[buf_pos] != '\n')
+    //for(int i = 0; i < size_of_file; i++)
     {
         buf_pos = Set_Lex_Val(tree, &node_buf[node_buf_pos], buf, buf_pos, &node_buf_pos);
     }

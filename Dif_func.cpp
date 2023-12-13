@@ -4,6 +4,13 @@
 #include "const_massivs.h"
 
 
+void Fill_Labels(struct Labels* labels)
+{
+    labels[0].var = "e";
+    labels[0].type = VAR;
+    labels[0].val = 2.7;
+}
+
 //                                                    Delete
 //------------------------------------------------------------------------------------------------------------------------------
 int Delete_SubTree(struct Node* node)
@@ -186,8 +193,19 @@ double Eval(struct Tree* tree, struct Node* node)
 
     //Check_Node(node);
 
+    //--------------------------------------------------------
+    #define OP(name, str_symbol, enum, diff, size, priotity, math_f, ...) \
+        case name:                                                        \
+            return math_f;
+           // break;
+    //--------------------------------------------------------
+
     switch((node -> val).op)
     {
+
+    #include "operators.h"
+
+    /*
     case ADD:
         return left + right;
     case SUB:
@@ -210,8 +228,9 @@ double Eval(struct Tree* tree, struct Node* node)
         return 1 / tan(right);
     case LOG:
         return log(right);
+    */
     default:
-        fprintf(stderr, "\n\033[31mERROR\033[0m no operation!!!");
+        fprintf(stderr, "\n" red(ERROR) " no operation!!!");
         exit(1);
     }
 }
@@ -303,7 +322,9 @@ struct Node* Der(struct Tree* tree, struct Node* node, struct Remove* rems, FILE
             exit(1);
     }
 
-    Print_One_Diff(tree, node, last_node, rems, file_tex);
+    #ifndef TEYLOR
+        Print_One_Diff(tree, node, last_node, rems, file_tex);
+    #endif
 
     #undef OP
     }
@@ -319,6 +340,57 @@ void   Print_One_Diff(struct Tree* tree, struct Node* node, struct Node* last_no
     Print_Tex(tree, node, file_tex, rems);
     fprintf(file_tex, " $$\\newline\n");
 }
+
+
+
+int Factorial(int n)
+{
+    int ans = 1;
+    for(int i = 1; i <= n; i++)
+    {
+        ans = ans * i;
+    }
+
+    return ans;
+}
+
+void Teylor(struct Tree* tree, FILE* file_tex, struct Remove* rems)
+{
+    struct Tree* Teylor_tree = (struct Tree*) calloc(1, sizeof(struct Tree));
+    struct Node* node = CONST(0);
+
+    Teylor_tree -> root = node;
+    Teylor_tree -> var_buf = tree -> var_buf;
+    Teylor_tree -> num_var = tree -> num_var;
+    Teylor_tree -> version = 0;
+
+
+    int n = 0;
+    printf("\nPrint n: ");
+    scanf("%d", &n);
+
+    fprintf(file_tex, "$$ f(x) = ");
+    Print_Tex(tree, tree -> root, file_tex, rems);
+    fprintf(file_tex, " $$\\newline\n");
+
+    fprintf(file_tex, "$$ f(x) = ");
+
+    Teylor_tree -> root = ADD( Teylor_tree -> root, MUL(DIV(CONST(Eval(tree, tree -> root)), CONST(1)), POW(VAR("x"),CONST(0))));
+
+    for(int i = 1; i <= n; i++)
+    {
+        tree -> root = Der(tree, tree -> root, rems, file_tex);
+        Teylor_tree -> root = ADD( Teylor_tree -> root, MUL(DIV(CONST(Eval(tree, tree -> root)), CONST((double) Factorial(i))), POW(VAR("x"), CONST( (double) i))));
+    }
+
+    Reduce_Tree(Teylor_tree, Teylor_tree -> root);
+    Print_Tex(Teylor_tree, Teylor_tree -> root, file_tex, rems);
+
+    fprintf(file_tex, " $$\\newline\n");
+
+}
+
+
 
 void   Dif_n(struct Tree* tree, FILE* file_tex, struct Remove* rems)
 {
@@ -471,18 +543,18 @@ int Reduce_ADD(struct Tree* tree, struct Node* node)
     if(Is_Zero(L))
     {
         Node* tmp_node = R;
-        Delete_SubTree(L);
+        //Delete_SubTree(L);
         Copy_Node(R, node);
-        Delete_Node(&(tmp_node));
+        //Delete_Node(&(tmp_node));
 
         return 1;
     }
     if(Is_Zero(R))
     {
         Node* tmp_node = L;
-        Delete_SubTree(R);
+        //Delete_SubTree(R);
         Copy_Node(L, node);
-        Delete_Node(&(tmp_node));
+        //Delete_Node(&(tmp_node));
 
         return 1;
     }

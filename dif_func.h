@@ -3,6 +3,8 @@
 
 #include "lib.h"
 
+#define TEYLOR
+
 #define tree_t "%s"
 #define red(str) "\033[31m"#str"\033[0m"
 #define green(str) "\033[32m"#str"\033[0m"
@@ -31,15 +33,15 @@
 #define LOG(left,right) Create_Node(OP, {.op = LOG},  left, right, node, tree)
 #define LN(right)       Create_Node(OP, {.op = LOG},  E   , right, node, tree)
 
-const int SIZE_STR = 100;
-const int INSERT_LEFT = 1;
-const int INSERT_RIGHT = -1;
-const int NUM_PRIORITY = 3;
-const int MAX_LEN_EXP = 5000;
-const int NUM_VAR = 50;
+const int SIZE_STR         = 100;
+const int INSERT_LEFT      = 1;
+const int INSERT_RIGHT     = -1;
+const int NUM_PRIORITY     = 4;
+const int MAX_LEN_EXP      = 5000;
+const int NUM_VAR          = 50;
 const int SIZE_PHRASE_BANK = 16;
 const int MAX_NUM_REPLASES = 25;
-const int SIZE_NODE_BUF = 100;
+const int SIZE_NODE_BUF    = 100;
 
 enum TYPE
 {
@@ -64,10 +66,7 @@ enum OPERATION
     LOG       = 10,
     R_BRACKET = 11,
     L_BRACKET = 12,
-    ZERO      = 13,
-    EQAL      = 14,
-    IF        = 15,
-    WHILE     = 16
+    ZERO      = 13
 };
 
 //const char operations[] = "ADD SUB MUL DIV SQRT";
@@ -134,6 +133,7 @@ void   Reduce_Tree(struct Tree* tree, struct Node* node);
 int    Reduce_Const (struct Node* node);
 
 double Calculate_val(struct Node* node);
+int Set_Priority(enum OPERATION op);
 
 int Delete_SubTree(struct Node* node);
 
@@ -147,6 +147,12 @@ struct Node* Copy_Node(struct Node* sourse_node, struct Node* dest_node);
 
 void Print_Replaces(struct Tree* tree, struct Remove* rems, FILE* file_tex);
 void Print_One_Diff(struct Tree* tree, struct Node* node, struct Node* last_node, struct Remove* rems, FILE* file_tex);
+
+void Fill_Labels(struct Labels* labels);
+
+int Factorial(int n);
+void Teylor(struct Tree* tree, FILE* file_tex, struct Remove* rems);
+
 #endif
 
 

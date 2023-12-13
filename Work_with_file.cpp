@@ -22,6 +22,10 @@ void Beautiful_Dump()
 //------------------------------------------------------------------------------------------------------------------------------
 void Print_Node_depends_of_type(struct Tree* tree, struct Node* node, FILE* file_dot)
 {
+    assert(node);
+    assert(tree);
+    assert(file_dot);
+
     if(node -> type == OP)
     {
         fprintf(file_dot, "%lld [color = \"red\", shape = record, style = \"rounded\", label = \"{", (long long int) node);
@@ -348,6 +352,7 @@ void Print_Node_to_Tex(struct Tree* tree, struct Node* node, FILE* file_tex)
 {
     assert(node);
     assert(tree);
+    assert(tree -> var_buf);
 
     switch (node -> type)
     {
@@ -380,9 +385,20 @@ void Print_Tex(struct Tree* tree, struct Node* node, FILE* file_tex, struct Remo
                 {                                                                       \
                     fprintf(file_tex, "(");                                             \
                 }                                                                       \
+                if((node -> left) -> priority != 4 && (node -> val).op == POW)          \
+                {                                                                       \
+                    fprintf(file_tex, "(");                                             \
+                }                                                                       \
             }                                                                           \
             fprintf(file_tex, start);                                                   \
             Print_Tex(tree, node -> left, file_tex, rems);                              \
+            if(node -> left != NULL)                                                    \
+            {                                                                           \
+                if((node -> left) -> priority != 4 && (node -> val).op == POW)          \
+                {                                                                       \
+                    fprintf(file_tex, ")");                                            \
+                }                                                                       \
+            }                                                                           \
             fprintf(file_tex, mid);                                                     \
             Print_Tex(tree, node -> right, file_tex, rems);                             \
             fprintf(file_tex, end);                                                     \
@@ -399,12 +415,15 @@ void Print_Tex(struct Tree* tree, struct Node* node, FILE* file_tex, struct Remo
     if(node -> type == VAR || node -> type == NUM)
     {
         //Print_Tex(node -> left, file_tex, rems);
+        node -> priority = NUM_PRIORITY;
+
         Print_Node_to_Tex(tree, node, file_tex);
         //Print_Tex(node -> right, file_tex, rems);
     }
     if(node -> type == OP)
     {
         //fprintf(stderr, green(size_node) " = %d\n", node -> size);
+        node -> priority = Set_Priority((node -> val).op);
 
         switch((node -> val).op)
         {
@@ -527,7 +546,6 @@ int Add_Variable(struct Tree* tree, struct Labels* var_buf, char* name)
         (tree -> num_var)++;
 
         return (tree -> num_var) - 1;
-
     }
 
     return var_id;
